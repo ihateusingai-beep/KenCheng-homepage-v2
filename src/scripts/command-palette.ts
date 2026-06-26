@@ -64,13 +64,55 @@ interface FuzzyResult {
   matches: number[];
 }
 
-function fuzzyScore(query: string, haystack: string, site: Site): FuzzyResult | null {
-  if (!query) return { score: 1, matches: [] };
+// ----- Scoring -----
+// Strategy: exact substring wins (high priority, no gap penalty).
+// Only fall back to fuzzy chars-in-order for typos.
+// Returns null = no match at all.
 
+const SCORE_TITLE_PREFIX = 250;
+const SCORE_TITLE_CONTAINS = 200;
+const SCORE_TAG = 130;
+const SCORE_CATEGORY = 110;
+const SCORE_HOSTNAME = 90;
+const SCORE_FUZZY_MIN = 15;
+
+function exactSubstringScore(query: string, site: Site): number | null {
+  if (!query) return 1;
+  const lower = query.toLowerCase();
+
+  // Title substring (highest priority)
+  const titleLower = site.title.toLowerCase();
+  const titleIdx = titleLower.indexOf(lower);
+  if (titleIdx >= 0) {
+    return titleIdx === 0 ? SCORE_TITLE_PREFIX : SCORE_TITLE_CONTAINS - titleIdx;
+  }
+
+  // Tag substring
+  for (const tag of site.tags) {
+    if (tag.toLowerCase().includes(lower)) {
+      return SCORE_TAG;
+    }
+  }
+
+  // Category substring
+  if (site.category.toLowerCase().includes(lower)) {
+    return SCORE_CATEGORY;
+  }
+
+  // Hostname substring
+  if (site.hostname.toLowerCase().includes(lower)) {
+    return SCORE_HOSTNAME;
+  }
+
+  return null;
+}
+
+// Fuzzy fallback — only used for typos (e.g. "gihub" → "github")
+function fuzzyScore(query: string, haystack: string): number | null {
+  if (!query) return 1;
   const lower = query.toLowerCase();
   let qIdx = 0;
   let hIdx = 0;
-  const matches: number[] = [];
   let consecutive = 0;
   let consecBonus = 0;
   let lastMatchIdx = -1;
@@ -78,7 +120,6 @@ function fuzzyScore(query: string, haystack: string, site: Site): FuzzyResult | 
 
   while (qIdx < lower.length && hIdx < haystack.length) {
     if (lower[qIdx] === haystack[hIdx]) {
-      matches.push(hIdx);
       consecutive += 1;
       if (consecutive > 1) consecBonus += consecutive * 2;
       if (lastMatchIdx >= 0) {
@@ -95,18 +136,21 @@ function fuzzyScore(query: string, haystack: string, site: Site): FuzzyResult | 
 
   if (qIdx < lower.length) return null;
 
-  let fieldWeight = 1;
-  if (site.tags.some((t) => t.toLowerCase().includes(lower))) fieldWeight *= 2;
-  if (site.category.toLowerCase().includes(lower)) fieldWeight *= 1.5;
+  const firstMatch = haystack.indexOf(lower[0] ?? '');
+  const baseScore = firstMatch === 0 ? 70 : Math.max(1, 40 - firstMatch);
+  const score = baseScore + consecBonus - gapPenalty;
 
-  const firstMatch = matches[0] ?? 0;
-  const baseScore = firstMatch === 0 ? 100 : Math.max(1, 50 - firstMatch);
-  const score = (baseScore + consecBonus - gapPenalty) * fieldWeight;
+  if (score < SCORE_FUZZY_MIN) return null;
+  return score;
+}
 
-  // Threshold: filter out low-quality matches (large gaps, late start)
-  if (score < 15) return null;
+function scoreSite(query: string, site: Site, haystack: string): number | null {
+  // 1. Exact substring (case-insensitive) — high priority
+  const exact = exactSubstringScore(query, site);
+  if (exact !== null) return exact;
 
-  return { score, matches };
+  // 2. Fuzzy fallback (for typos)
+  return fuzzyScore(query, haystack);
 }
 
 // ----- Tag filtering -----
@@ -292,15 +336,15 @@ class CommandPalette {
         score: 0,
       }));
     } else {
-      // Fuzzy search (apply tag filter on top)
+      // Search (exact substring + fuzzy fallback). Apply tag filter on top.
       const scored: ScoredResult[] = [];
       for (const entry of this.index) {
         if (this.selectedTags.size > 0 && !entry.site.tags.some((t) => this.selectedTags.has(t))) {
           continue;
         }
-        const result = fuzzyScore(query, entry.haystack, entry.site);
-        if (result) {
-          scored.push({ ...entry, score: result.score });
+        const score = scoreSite(query, entry.site, entry.haystack);
+        if (score !== null) {
+          scored.push({ ...entry, score });
         }
       }
       this.currentResults = scored.sort((a, b) => b.score - a.score).slice(0, MAX_RESULTS);
