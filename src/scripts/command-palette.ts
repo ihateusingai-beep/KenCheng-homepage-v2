@@ -83,7 +83,7 @@ function fuzzyScore(query: string, haystack: string, site: Site): FuzzyResult | 
       if (consecutive > 1) consecBonus += consecutive * 2;
       if (lastMatchIdx >= 0) {
         const gap = hIdx - lastMatchIdx - 1;
-        if (gap > 0) gapPenalty += gap * 2;
+        if (gap > 0) gapPenalty += gap * 3;
       }
       lastMatchIdx = hIdx;
       qIdx += 1;
@@ -104,7 +104,7 @@ function fuzzyScore(query: string, haystack: string, site: Site): FuzzyResult | 
   const score = (baseScore + consecBonus - gapPenalty) * fieldWeight;
 
   // Threshold: filter out low-quality matches (large gaps, late start)
-  if (score < 10) return null;
+  if (score < 15) return null;
 
   return { score, matches };
 }
