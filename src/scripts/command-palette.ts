@@ -73,12 +73,19 @@ function fuzzyScore(query: string, haystack: string, site: Site): FuzzyResult | 
   const matches: number[] = [];
   let consecutive = 0;
   let consecBonus = 0;
+  let lastMatchIdx = -1;
+  let gapPenalty = 0;
 
   while (qIdx < lower.length && hIdx < haystack.length) {
     if (lower[qIdx] === haystack[hIdx]) {
       matches.push(hIdx);
       consecutive += 1;
       if (consecutive > 1) consecBonus += consecutive * 2;
+      if (lastMatchIdx >= 0) {
+        const gap = hIdx - lastMatchIdx - 1;
+        if (gap > 0) gapPenalty += gap * 2;
+      }
+      lastMatchIdx = hIdx;
       qIdx += 1;
     } else {
       consecutive = 0;
@@ -94,7 +101,10 @@ function fuzzyScore(query: string, haystack: string, site: Site): FuzzyResult | 
 
   const firstMatch = matches[0] ?? 0;
   const baseScore = firstMatch === 0 ? 100 : Math.max(1, 50 - firstMatch);
-  const score = (baseScore + consecBonus) * fieldWeight;
+  const score = (baseScore + consecBonus - gapPenalty) * fieldWeight;
+
+  // Threshold: filter out low-quality matches (large gaps, late start)
+  if (score < 10) return null;
 
   return { score, matches };
 }
