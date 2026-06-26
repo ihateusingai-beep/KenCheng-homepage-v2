@@ -1,0 +1,86 @@
+/* Tailwind v4 — single global stylesheet, theme tokens via @theme */
+@import "tailwindcss";
+
+@theme {
+  /* Cyber monochrome palette */
+  --color-bg: #0a0a0a;
+  --color-bg-elev: #141414;
+  --color-bg-soft: #1a1a1a;
+  --color-fg: #e5e5e5;
+  --color-fg-dim: #a3a3a3;
+  --color-fg-faint: #525252;
+  --color-border: #262626;
+  --color-border-bright: #404040;
+  --color-accent: #00d4ff;
+  --color-accent-dim: #0891b2;
+  --color-accent-glow: rgba(0, 212, 255, 0.4);
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, 'SF Mono',
+    Monaco, Consolas, monospace;
+
+  /* Animation */
+  --ease-cyber: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Base layer — minimal, the rest goes via Tailwind utilities */
+html {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+}
+
+/* Selection — cyber cyan */
+::selection {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+/* Scrollbar — thin cyber */
+@media (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-bright);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent-dim);
+  }
+}
+
+/* Focus ring — visible but not loud */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Reduced motion — respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

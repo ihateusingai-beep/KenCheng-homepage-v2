@@ -1,0 +1,101 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const sites = await getCollection('sites');
+const featured = sites
+  .filter((s) => s.data.featured)
+  .sort((a, b) => a.data.order - b.data.order);
+const all = [...sites].sort((a, b) => a.data.order - b.data.order);
+
+const categories = [...new Set(sites.map((s) => s.data.category))];
+const aiCount = sites.filter((s) => s.data.category === 'AI').length;
+---
+
+<BaseLayout title="Ken Cheng — 教學工具導航站">
+  <main id="main" class="container mx-auto px-4 py-12 max-w-6xl">
+    <header class="mb-12 border-b border-border pb-8">
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+        <span class="text-accent">//</span> BOOKMARK_HUB_v2
+      </h1>
+      <p class="text-fg-dim font-mono text-sm">
+        {sites.length} 個 site · {categories.length} 個 category · {aiCount} 個 AI tool ·
+        Astro 7 + Tailwind v4
+      </p>
+      <p class="mt-4 text-fg-dim max-w-2xl">
+        教學工具、AI 應用、開發工具嘅 curated 目錄。每個 site 都有實戰場景，
+        唔係 aggregator。
+      </p>
+    </header>
+
+    {
+      featured.length > 0 && (
+        <section class="mb-12">
+          <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2">
+            <span class="text-accent">★</span> 為你推薦
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featured.slice(0, 6).map((site) => (
+              <article class="group border border-border rounded-lg p-5 hover:border-accent transition-colors bg-bg-elev">
+                <div class="flex items-start justify-between mb-2 gap-2">
+                  <h3 class="font-semibold text-lg group-hover:text-accent transition-colors">
+                    {site.data.title}
+                  </h3>
+                  <span class="text-xs px-2 py-0.5 rounded bg-accent/10 text-accent border border-accent/30 shrink-0">
+                    {site.data.category}
+                  </span>
+                </div>
+                <p class="text-sm text-fg-dim line-clamp-3 mb-3">{site.body}</p>
+                <a
+                  href={site.data.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-block text-xs text-accent hover:underline font-mono"
+                >
+                  {new URL(site.data.url).hostname} →
+                </a>
+              </article>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <section>
+      <h2 class="text-2xl font-semibold mb-6">全部</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {
+          all.map((site) => (
+            <article class="group border border-border rounded-lg p-5 hover:border-accent transition-colors">
+              <div class="flex items-start justify-between mb-2 gap-2">
+                <h3 class="font-semibold text-lg group-hover:text-accent transition-colors">
+                  {site.data.title}
+                </h3>
+                <span class="text-xs px-2 py-0.5 rounded bg-bg-soft text-fg-dim border border-border shrink-0">
+                  {site.data.category}
+                </span>
+              </div>
+              <p class="text-sm text-fg-dim line-clamp-3 mb-3">{site.body}</p>
+              <a
+                href={site.data.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-block text-xs text-accent hover:underline font-mono"
+              >
+                {new URL(site.data.url).hostname} →
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <footer class="mt-16 pt-8 border-t border-border text-fg-faint text-sm font-mono">
+      <p>
+        v2 scaffold · {new Date().toISOString().split('T')[0]} ·{' '}
+        <a href="/rss.xml" class="text-accent hover:underline">RSS</a> ·{' '}
+        <a href="/sitemap-index.xml" class="text-accent hover:underline">sitemap</a>
+      </p>
+    </footer>
+  </main>
+</BaseLayout>
