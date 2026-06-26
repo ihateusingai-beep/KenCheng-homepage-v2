@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import CommandPalette from '../components/CommandPalette.astro';
 
 interface Props {
   title: string;
@@ -38,7 +39,7 @@ const canonicalURL = new URL(Astro.url.pathname, siteUrl);
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
 
-    <!-- Favicon (placeholder, replaced in V2 polish pass) -->
+    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- RSS auto-discovery -->
@@ -55,5 +56,13 @@ const canonicalURL = new URL(Astro.url.pathname, siteUrl);
     </a>
 
     <slot />
+
+    <!-- F1: ⌘K command palette (HTML + bundled TS injected below) -->
+    <CommandPalette />
+
+    <!-- Client script — bundled by Astro/Vite, side-effect import -->
+    <script>
+      import '../scripts/command-palette';
+    </script>
   </body>
 </html>

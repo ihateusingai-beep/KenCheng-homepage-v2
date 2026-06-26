@@ -1,0 +1,58 @@
+---
+/**
+ * SiteCard — reusable card used by index page (featured + all sections).
+ * Visual variants: `variant: 'featured' | 'default'` controls bg + chip style.
+ */
+interface Props {
+  title: string;
+  url: string;
+  category: string;
+  body?: string;
+  featured?: boolean;
+  variant?: 'featured' | 'default';
+}
+
+const {
+  title,
+  url,
+  category,
+  body = '',
+  featured = false,
+  variant = 'default',
+} = Astro.props;
+const hostname = new URL(url).hostname.replace(/^www\./, '');
+const isFeatured = variant === 'featured';
+---
+
+<article
+  class:list={[
+    'group border rounded-lg p-5 transition-colors',
+    isFeatured ? 'bg-bg-elev' : '',
+    'border-border hover:border-accent',
+  ]}
+>
+  <div class="flex items-start justify-between mb-2 gap-2">
+    <h3 class="font-semibold text-lg group-hover:text-accent transition-colors">
+      {title}
+    </h3>
+    <span
+      class:list={[
+        'text-xs px-2 py-0.5 rounded shrink-0 border',
+        isFeatured
+          ? 'bg-accent/10 text-accent border-accent/30'
+          : 'bg-bg-soft text-fg-dim border-border',
+      ]}
+    >
+      {category}
+    </span>
+  </div>
+  {body && <p class="text-sm text-fg-dim line-clamp-3 mb-3">{body}</p>}
+  <a
+    href={url}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="inline-block text-xs text-accent hover:underline font-mono"
+  >
+    {hostname} →
+  </a>
+</article>

@@ -1,0 +1,52 @@
+---
+/**
+ * CommandPalette — F1 ⌘K / `/` overlay.
+ * Static HTML structure; behavior lives in src/scripts/command-palette.ts.
+ * Toggled via body.kc-palette-open class (see global.css).
+ */
+---
+
+<div
+  id="kc-palette"
+  class="kc-palette"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="kc-palette-title"
+  aria-hidden="true"
+>
+  <div class="kc-palette-backdrop" data-kc-palette-close></div>
+
+  <div class="kc-palette-panel" role="combobox" aria-expanded="true" aria-haspopup="listbox">
+    <h2 id="kc-palette-title" class="sr-only">搜尋工具</h2>
+
+    <div class="kc-palette-input-wrap">
+      <span class="kc-palette-search-icon" aria-hidden="true">⌕</span>
+      <input
+        id="kc-palette-input"
+        type="text"
+        placeholder="搜尋 site、tag、category…"
+        autocomplete="off"
+        spellcheck="false"
+        class="kc-palette-input"
+        aria-controls="kc-palette-results"
+        aria-activedescendant=""
+      />
+      <kbd class="kc-palette-kbd">ESC</kbd>
+    </div>
+
+    <div id="kc-palette-tags" class="kc-palette-tags" role="group" aria-label="Tag filter">
+      <!-- Tag pills injected at runtime by command-palette.ts -->
+    </div>
+
+    <ul id="kc-palette-results" class="kc-palette-results" role="listbox" aria-label="搜尋結果">
+      <li class="kc-palette-empty">輸入關鍵字開始搜尋…</li>
+    </ul>
+
+    <div class="kc-palette-footer" aria-hidden="true">
+      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd>esc</kbd> close</span>
+      <span class="kc-palette-hint">⌘K</span>
+    </div>
+  </div>
+</div>
