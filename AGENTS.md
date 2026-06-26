@@ -86,9 +86,11 @@ npx astro check          # TS strict + content collection schema validate
 ## Gotchas（scaffold 階段發現）
 
 - **Astro 7 breaking change**：content config 必須喺 `src/content.config.ts`（top-level）而唔係 `src/content/config.ts`，每個 collection 必須 explicit `loader: glob(...)`。v6 嘅 `type: 'content'` shorthand 已廢除。
+- **Astro 7 需要 Node >=22.12.0**：CI workflow 用 `node-version: 22`（GitHub Actions 已棄用 Node 20）。本地開發可以用 22/24，唔好用 20。
 - **Zod v3→v4 deprecation hints**：`z.string().url()` / `z.string().min(1).max(100)` 等仲 work 但有 hint。建議 migrate 落 `z.url()` / `z.string().min(1).max(100)` 寫法。
 - **`/rss.xml` 同 `/sitemap-index.xml`** 而家 404。A4（sitemap + RSS）實作後補返。
 - **GitHub Pages base path**：而家係 `/KenCheng-homepage-v2`，假設 v2 喺新 repo `KenCheng-homepage-v2`。若改放 v1 repo subdirectory `/v2/`，要改 `astro.config.mjs` 嘅 `base` field。
+- **Workflow 首次 push 失敗 → fix Node 22 → 重 push → 通咗**：見 commit log。
 
 ## 部署（未 push）
 
