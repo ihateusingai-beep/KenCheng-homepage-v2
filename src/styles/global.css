@@ -18,6 +18,14 @@
   --color-warning: #f59e0b;
   --color-error: #ef4444;
 
+  /* V3 — Category hue system (V6 polish pass) */
+  --color-cat-ai: #00d4ff;        /* cyan   — AI / LLM */
+  --color-cat-teaching: #10b981;  /* emerald — 教學 */
+  --color-cat-dev: #a855f7;       /* purple — 開發 */
+  --color-cat-design: #ec4899;    /* pink   — 設計 */
+  --color-cat-learning: #f59e0b;  /* amber  — 學習 */
+  --color-cat-other: #6b7280;     /* gray   — 其他 */
+
   /* Typography */
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif;
@@ -87,7 +95,19 @@ body {
 
 /* =========================================================================
    F1 — ⌘K Command Palette
+   ---------------------------------------------------------------------------
+   Polish pass (2026-06-27): mobile bottom sheet + focus indicators + color.
+   Reference patterns: Vercel ⌘K (desktop centered), Linear Cmd+K (mono + glow),
+   Raycast (mobile bottom sheet). Tinted cyan glow + drag handle on mobile,
+   visible focus rings on every interactive element.
    ========================================================================= */
+
+/* Handle — hidden on desktop, shown on mobile as drag affordance */
+.kc-palette-handle {
+  display: none;
+}
+
+/* Palette overlay — hidden by default, shown when body.kc-palette-open */
 
 /* Inline kbd (used in header tip, footer hints, etc.) */
 .kc-inline-kbd {
@@ -140,17 +160,24 @@ body.kc-palette-open .kc-palette {
   border: 1px solid var(--color-border-bright);
   border-radius: 12px;
   box-shadow:
-    0 0 0 1px var(--color-accent-glow),
+    0 0 0 1px var(--color-accent),
+    0 0 40px rgba(0, 212, 255, 0.18),
     0 20px 50px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
   max-height: 75vh;
   overflow: hidden;
   transform: translateY(-8px) scale(0.98);
-  transition: transform 200ms var(--ease-cyber);
+  transition:
+    transform 200ms var(--ease-cyber),
+    box-shadow 200ms var(--ease-cyber);
 }
 body.kc-palette-open .kc-palette-panel {
   transform: translateY(0) scale(1);
+  box-shadow:
+    0 0 0 1px var(--color-accent),
+    0 0 60px rgba(0, 212, 255, 0.25),
+    0 25px 60px rgba(0, 0, 0, 0.7);
 }
 
 /* Input row */
@@ -177,9 +204,18 @@ body.kc-palette-open .kc-palette-panel {
   font-size: 16px;
   font-family: var(--font-sans);
   min-width: 0;
+  caret-color: var(--color-accent);
 }
 .kc-palette-input::placeholder {
   color: var(--color-fg-faint);
+}
+/* Focus ring — cyan glow on the wrap, not on the input itself */
+.kc-palette-input-wrap:focus-within {
+  background: rgba(0, 212, 255, 0.04);
+  border-bottom-color: var(--color-accent);
+}
+.kc-palette-input:focus-visible {
+  outline: none;
 }
 
 .kc-palette-kbd {
@@ -222,11 +258,20 @@ body.kc-palette-open .kc-palette-panel {
   border-color: var(--color-border-bright);
   color: var(--color-fg);
 }
+.kc-tag:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  background: rgba(0, 212, 255, 0.08);
+  color: var(--color-accent);
+}
 .kc-tag-selected {
-  background: var(--color-accent) / 0.15;
-  background: rgba(0, 212, 255, 0.15);
+  background: rgba(0, 212, 255, 0.18);
   border-color: var(--color-accent);
   color: var(--color-accent);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.25);
+}
+.kc-tag-selected:focus-visible {
+  background: rgba(0, 212, 255, 0.28);
 }
 
 /* Results list */
@@ -256,9 +301,18 @@ body.kc-palette-open .kc-palette-panel {
   color: var(--color-accent);
   cursor: pointer;
   font-size: 12px;
+  transition:
+    background 150ms var(--ease-cyber),
+    border-color 150ms var(--ease-cyber);
 }
 .kc-clear-btn:hover {
   background: rgba(0, 212, 255, 0.1);
+  border-color: var(--color-accent);
+}
+.kc-clear-btn:focus-visible {
+  outline: none;
+  background: rgba(0, 212, 255, 0.12);
+  border-color: var(--color-accent);
 }
 
 .kc-result {
@@ -268,15 +322,35 @@ body.kc-palette-open .kc-palette-panel {
   gap: 12px;
   padding: 10px 16px;
   cursor: pointer;
-  border-left: 2px solid transparent;
+  border-left: 3px solid transparent;
+  padding-left: 15px; /* compensate for thicker border vs old 2px */
   transition:
-    background 100ms var(--ease-cyber),
-    border-color 100ms var(--ease-cyber);
+    background 120ms var(--ease-cyber),
+    border-color 120ms var(--ease-cyber),
+    color 120ms var(--ease-cyber);
+}
+
+.kc-result:hover {
+  background: rgba(0, 212, 255, 0.05);
+  border-left-color: rgba(0, 212, 255, 0.4);
+}
+
+.kc-result:focus-visible {
+  outline: none;
+  background: rgba(0, 212, 255, 0.08);
+  border-left-color: var(--color-accent);
 }
 
 .kc-result-selected {
-  background: rgba(0, 212, 255, 0.08);
+  background: rgba(0, 212, 255, 0.12);
   border-left-color: var(--color-accent);
+}
+
+.kc-result-selected .kc-result-title {
+  color: #ffffff;
+}
+.kc-result-selected .kc-result-host {
+  color: rgba(0, 212, 255, 0.85);
 }
 
 .kc-result-main {
@@ -324,11 +398,11 @@ body.kc-palette-open .kc-palette-panel {
 }
 
 .kc-mark {
-  background: var(--color-accent) / 0.3;
-  background: rgba(0, 212, 255, 0.3);
-  color: var(--color-accent);
+  background: rgba(0, 212, 255, 0.4);
+  color: #ffffff;
   border-radius: 2px;
-  padding: 0 1px;
+  padding: 0 2px;
+  font-weight: 600;
 }
 
 /* Footer keyboard hints */
@@ -365,16 +439,323 @@ body.kc-palette-open .kc-palette-panel {
   }
 }
 
-/* Mobile */
+/* Mobile — bottom sheet pattern (slides up from screen bottom) */
 @media (max-width: 640px) {
   .kc-palette {
-    padding: 5vh 12px 12px;
+    align-items: flex-end;
+    padding: 0;
   }
   .kc-palette-panel {
-    max-height: 85vh;
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 16px 16px 0 0;
+    border-bottom: none;
+    transform: translateY(100%);
+    transition: transform 280ms var(--ease-cyber);
   }
+  body.kc-palette-open .kc-palette-panel {
+    transform: translateY(0);
+  }
+
+  /* Drag handle — visual affordance only (no swipe-to-close yet) */
+  .kc-palette-handle {
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 8px auto 0;
+    border-radius: 2px;
+    background: var(--color-border-bright);
+    flex-shrink: 0;
+  }
+
+  /* Larger touch targets — 44px+ minimum */
+  .kc-palette-input-wrap {
+    padding: 14px 16px 12px;
+  }
+  .kc-palette-input {
+    font-size: 16px; /* prevent iOS auto-zoom */
+  }
+  .kc-palette-tags {
+    max-height: 96px;
+    padding: 10px 14px;
+  }
+  .kc-tag {
+    padding: 7px 12px;
+    font-size: 12px;
+    min-height: 32px;
+  }
+  .kc-result {
+    padding: 14px 16px;
+    padding-left: 15px;
+    min-height: 56px;
+  }
+  .kc-result-title {
+    font-size: 15px;
+  }
+  .kc-result-host {
+    font-size: 12px;
+  }
+
+  /* Hide keyboard hints — mobile users tap */
+  .kc-palette-kbd,
   .kc-palette-footer {
-    flex-wrap: wrap;
-    gap: 8px;
+    display: none;
   }
+}
+
+/* =========================================================================
+   Cards + Hero — V6 polish pass (2026-06-27)
+   ---------------------------------------------------------------------------
+   #1 Card hover micro-interaction (V1 roadmap) — translateY(-2px) + cat-hue
+      glow border + title color shift + radial overlay, 200ms ease.
+   #2 Card focus ring (a11y) — :focus-within promotes link focus to card.
+   #3 Hero KPI tiles — 3-column stats grid replacing inline mono line.
+   #5 Category color system (V3) — --cat-hue CSS var injection; chip + border
+      + link + hover glow all derive from it.
+   #6 Featured visual differentiation (V2 partial) — corner FEATURED badge
+      using cat-hue gradient + left border stripe + subtle bg tint.
+   #7 Hostname arrow micro-anim — → translates +2px on link hover.
+   ========================================================================= */
+
+/* Card base */
+.kc-card {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 20px;
+  background: var(--color-bg-elev);
+  overflow: hidden;
+  transition:
+    transform 200ms var(--ease-cyber),
+    border-color 200ms var(--ease-cyber),
+    box-shadow 200ms var(--ease-cyber),
+    background 200ms var(--ease-cyber);
+}
+
+/* Subtle radial gradient overlay (cyber depth, fades in on hover) */
+.kc-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at top right,
+    color-mix(in srgb, var(--cat-hue, var(--color-accent)) 8%, transparent),
+    transparent 60%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-cyber);
+}
+
+/* Hover — #1 micro-interaction */
+.kc-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--cat-hue, var(--color-accent)) 50%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--cat-hue, var(--color-accent)) 30%, transparent),
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    0 0 30px color-mix(in srgb, var(--cat-hue, var(--color-accent)) 15%, transparent);
+  background: color-mix(in srgb, var(--color-bg-elev) 96%, var(--cat-hue, var(--color-accent)) 4%);
+}
+.kc-card:hover::before {
+  opacity: 1;
+}
+
+/* Featured (#6) — left border stripe + subtle bg tint */
+.kc-card-featured {
+  border-left: 3px solid var(--cat-hue, var(--color-accent));
+  padding-left: 18px; /* compensate for 3px vs 1px border */
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--cat-hue, var(--color-accent)) 5%, var(--color-bg-elev)),
+    var(--color-bg-elev) 60%
+  );
+}
+
+/* Focus ring (#2 a11y) — wraps the whole card when inner link is focused */
+.kc-card:focus-within {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--color-accent) 50%, transparent),
+    0 0 20px rgba(0, 212, 255, 0.2);
+}
+
+/* Card title — shifts to cat-hue on hover */
+.kc-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-fg);
+  letter-spacing: -0.01em;
+  transition: color 200ms var(--ease-cyber);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kc-card:hover .kc-card-title {
+  color: var(--cat-hue, var(--color-accent));
+}
+
+/* Category chip (#5) — uses --cat-hue for bg + color + border */
+.kc-card-cat-chip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+  background: color-mix(in srgb, var(--cat-hue, var(--color-fg-dim)) 12%, transparent);
+  color: var(--cat-hue, var(--color-fg-dim));
+  border-color: color-mix(in srgb, var(--cat-hue, var(--color-fg-dim)) 35%, transparent);
+  flex-shrink: 0;
+  line-height: 1.4;
+  transition:
+    background 200ms var(--ease-cyber),
+    border-color 200ms var(--ease-cyber);
+}
+.kc-card:hover .kc-card-cat-chip {
+  background: color-mix(in srgb, var(--cat-hue, var(--color-fg-dim)) 22%, transparent);
+  border-color: color-mix(in srgb, var(--cat-hue, var(--color-fg-dim)) 55%, transparent);
+}
+
+/* Card body */
+.kc-card-body {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-fg-dim);
+}
+
+/* Card link / hostname (#7) — arrow micro-anim on hover */
+.kc-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color 200ms var(--ease-cyber);
+}
+.kc-card-link:hover {
+  color: var(--cat-hue, var(--color-accent));
+}
+.kc-card-link:focus-visible {
+  outline: none;
+  /* Inherits card-level focus ring via :focus-within */
+}
+.kc-card-arrow {
+  display: inline-block;
+  transition: transform 200ms var(--ease-cyber);
+}
+.kc-card-link:hover .kc-card-arrow {
+  transform: translateX(2px);
+}
+
+/* Featured badge (#6) — corner ribbon */
+.kc-card-featured-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  padding: 3px 8px;
+  border-radius: 3px;
+  background: linear-gradient(
+    135deg,
+    var(--cat-hue, var(--color-accent)),
+    color-mix(in srgb, var(--cat-hue, var(--color-accent)) 50%, transparent)
+  );
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--cat-hue, var(--color-accent)) 40%, transparent);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* When featured badge present, push cat-chip down so they don't overlap */
+.kc-card:has(.kc-card-featured-badge) .kc-card-cat-chip {
+  margin-top: 22px;
+}
+
+/* =========================================================================
+   Hero — V6 polish (#3 KPI tiles)
+   ========================================================================= */
+
+.kc-hero {
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.kc-hero-title {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 14px;
+  color: var(--color-fg);
+}
+@media (min-width: 768px) {
+  .kc-hero-title { font-size: 44px; }
+}
+
+.kc-hero-tagline {
+  color: var(--color-fg-dim);
+  max-width: 640px;
+  margin-bottom: 24px;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.kc-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 480px;
+  padding: 18px 0;
+  margin: 0 0 20px 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.kc-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.kc-stat-num {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-accent);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.kc-stat-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-fg-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 6px;
+}
+
+.kc-hero-tip {
+  color: var(--color-fg-faint);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+/* Mobile stats — tighter */
+@media (max-width: 480px) {
+  .kc-hero-stats {
+    gap: 12px;
+  }
+  .kc-stat-num { font-size: 22px; }
+  .kc-hero-title { font-size: 30px; }
 }
