@@ -5,7 +5,7 @@ import { getCollection } from 'astro:content';
 
 const sites = await getCollection('sites');
 
-// Slim payload for the ⌘K palette: only fields needed for search.
+// Slim payload for ⌘K palette
 const paletteData = sites.map((s) => ({
   title: s.data.title,
   url: s.data.url,
@@ -18,21 +18,44 @@ const paletteData = sites.map((s) => ({
 const featured = sites
   .filter((s) => s.data.featured)
   .sort((a, b) => a.data.order - b.data.order);
-const all = [...sites].sort((a, b) => a.data.order - b.data.order);
 
 const categories = [...new Set(sites.map((s) => s.data.category))];
 const aiCount = sites.filter((s) => s.data.category === 'AI').length;
 
-// Category chip meta
-const CAT_CHIP: Record<string, { icon: string; color: string }> = {
-  '數學': { icon: '🔢', color: 'text-amber-500' },
-  '科學': { icon: '🔬', color: 'text-cyan-600' },
-  '教學': { icon: '📚', color: 'text-emerald-500' },
-  'AI':   { icon: '🤖', color: 'text-cyan-400' },
-  '開發': { icon: '⚙️', color: 'text-purple-500' },
-  '設計': { icon: '🎨', color: 'text-pink-500' },
-  '學習': { icon: '💡', color: 'text-orange-500' },
-  '其他': { icon: '📌', color: 'text-gray-400' },
+// Category full meta — used in category showcase
+const CAT_META: Record<string, { icon: string; hue: string; bg: string; desc: string }> = {
+  '數學': {
+    icon: '🔢', hue: '#f59e0b', bg: 'rgba(245,158,11,0.08)',
+    desc: '乘法、減法、方程天平、位值認識——互動化，唔再死記硬背',
+  },
+  '科學': {
+    icon: '🔬', hue: '#06b6d4', bg: 'rgba(6,182,212,0.08)',
+    desc: '水循環、浮力、溶解、蒸發——微觀模擬，唔需要實驗室',
+  },
+  '教學': {
+    icon: '📚', hue: '#10b981', bg: 'rgba(16,185,129,0.08)',
+    desc: '語文朗讀、成語闖關、歷史故事、課堂管理',
+  },
+  'AI': {
+    icon: '🤖', hue: '#00d4ff', bg: 'rgba(0,212,255,0.08)',
+    desc: 'Claude、GPT、Phind——實際應用喺教學嘅 AI 工具',
+  },
+  '開發': {
+    icon: '⚙️', hue: '#a855f7', bg: 'rgba(168,85,247,0.08)',
+    desc: 'Cursor、GitHub、Vercel——老師整工具嘅 stack',
+  },
+  '設計': {
+    icon: '🎨', hue: '#ec4899', bg: 'rgba(236,72,153,0.08)',
+    desc: 'Figma、AI Design——視覺化工具，教學簡報、UI/UX 概念',
+  },
+  '學習': {
+    icon: '💡', hue: '#f97316', bg: 'rgba(249,115,22,0.08)',
+    desc: '打字練習、遊戲化學習——用遊戲機制提升動機',
+  },
+  '其他': {
+    icon: '📌', hue: '#6b7280', bg: 'rgba(107,114,128,0.08)',
+    desc: 'QR Code、課室工具、Grouping——有用嘅工具集合',
+  },
 };
 
 const catCounts = Object.fromEntries(
@@ -41,108 +64,263 @@ const catCounts = Object.fromEntries(
 ---
 
 <BaseLayout title="Ken Cheng — 教學工具導航站">
-  <!-- F1 data source: read by command-palette.ts at runtime -->
   <script id="kc-sites-data" type="application/json" set:html={JSON.stringify(paletteData)} />
 
-  <main id="main" class="container mx-auto px-4 py-12 max-w-6xl">
-    <header class="kc-hero">
-      <h1 class="kc-hero-title">
-        <span class="text-accent">//</span> BOOKMARK_HUB_v2
-      </h1>
-      <p class="kc-hero-tagline">
-        教學工具、AI 應用、開發工具嘅 curated 目錄。每個 site 都有實戰場景，
-        唔係 aggregator。
-      </p>
-      <dl class="kc-hero-stats">
-        <div class="kc-stat">
-          <dt class="kc-stat-num">{sites.length}</dt>
-          <dd class="kc-stat-label">sites</dd>
-        </div>
-        <div class="kc-stat">
-          <dt class="kc-stat-num">{categories.length}</dt>
-          <dd class="kc-stat-label">categories</dd>
-        </div>
-        <div class="kc-stat">
-          <dt class="kc-stat-num">{aiCount}</dt>
-          <dd class="kc-stat-label">AI tools</dd>
-        </div>
-      </dl>
-      <p class="kc-hero-tip">
-        Tip：撳 <kbd class="kc-inline-kbd">⌘K</kbd> /
-        <kbd class="kc-inline-kbd">/</kbd> 開 search palette
-      </p>
-    </header>
+  <main id="main">
 
-    <!-- Category quick-nav chips -->
-    <nav class="mb-10" aria-label="Category navigation">
-      <p class="text-xs font-mono text-fg-dim uppercase tracking-wide mb-3">範疇</p>
-      <div class="flex flex-wrap gap-3">
-        {
-          categories.map((cat) => {
-            const chip = CAT_CHIP[cat] ?? { icon: '📌', color: 'text-gray-400' };
-            const count = catCounts[cat] ?? 0;
-            return (
-              <a
-                href={`/${cat}/`}
-                class:list={[
-                  'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium',
-                  'border border-border bg-bg-secondary',
-                  'hover:border-accent hover:text-accent transition-colors',
-                ]}
-              >
-                <span>{chip.icon}</span>
-                <span>{cat}</span>
-                <span class:list={['text-xs font-mono', chip.color, 'opacity-70']}>
-                  {count}
-                </span>
-              </a>
-            );
-          })
-        }
+    <!-- ── HERO ─────────────────────────────────────────────────── -->
+    <section class="hero-section">
+      <!-- Animated CSS grid background -->
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-glow" aria-hidden="true"></div>
+
+      <div class="container hero-inner">
+        <!-- Label -->
+        <div class="hero-label">
+          <span class="label-bar"></span>
+          <span>TOOL HUB</span>
+          <span class="label-dot"></span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="hero-headline">
+          <span class="hero-headline-top">教學工具</span>
+          <span class="hero-headline-mid">
+            <span class="text-accent">AI</span>
+            <span class="hero-headline-sep">·</span>
+            <span>開發</span>
+            <span class="hero-headline-sep">·</span>
+            <span>科學</span>
+          </span>
+          <span class="hero-headline-bot">嘅 curated 目錄</span>
+        </h1>
+
+        <!-- Sub -->
+        <p class="hero-sub">
+          每個 site 都有實戰場景。<br class="hero-br" />
+          唔係 aggregator，唔係 list——係揀過先放。
+        </p>
+
+        <!-- Featured CTA -->
+        <a
+          href="https://ihateusingai-beep.github.io/innovative-teaching-prompt-studio/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="featured-cta"
+        >
+          <span class="featured-cta-icon">⭐</span>
+          <span class="featured-cta-text">
+            <strong>創意教學 Prompt Studio</strong>
+            <small>特教教師必備 · AI Prompt 工作台</small>
+          </span>
+          <span class="featured-cta-arrow">→</span>
+        </a>
+
+        <!-- Stats row -->
+        <div class="hero-stats-row">
+          <div class="hero-stat">
+            <span class="hero-stat-num">{sites.length}</span>
+            <span class="hero-stat-label">tools</span>
+          </div>
+          <div class="hero-stat-sep" aria-hidden="true"></div>
+          <div class="hero-stat">
+            <span class="hero-stat-num">{categories.length}</span>
+            <span class="hero-stat-label">範疇</span>
+          </div>
+          <div class="hero-stat-sep" aria-hidden="true"></div>
+          <div class="hero-stat">
+            <span class="hero-stat-num">{aiCount}</span>
+            <span class="hero-stat-label">AI</span>
+          </div>
+          <div class="hero-stat-sep" aria-hidden="true"></div>
+          <div class="hero-stat">
+            <span class="hero-stat-num">{featured.length}</span>
+            <span class="hero-stat-label">featured</span>
+          </div>
+        </div>
+
+        <!-- Search hint -->
+        <p class="hero-hint">
+          撳 <kbd class="kc-inline-kbd">⌘K</kbd> 或 <kbd class="kc-inline-kbd">/</kbd> 搜尋工具
+        </p>
       </div>
-    </nav>
 
+      <!-- Category pills row -->
+      <div class="hero-cat-row">
+        <div class="container">
+          <div class="hero-cats">
+            {
+              categories.map((cat) => {
+                const m = CAT_META[cat];
+                if (!m) return null;
+                return (
+                  <a href={`/${cat}/`} class="hero-cat-pill" style={`--pill-hue: ${m.hue};`}>
+                    <span class="hero-cat-icon">{m.icon}</span>
+                    <span class="hero-cat-name">{cat}</span>
+                    <span class="hero-cat-count">{catCounts[cat] ?? 0}</span>
+                  </a>
+                );
+              })
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CATEGORY SHOWCASE ──────────────────────────────────── -->
+    <section class="cat-showcase-section">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2 class="section-title">範疇一覽</h2>
+          <p class="section-sub">8 個範疇，每個都係精選</p>
+        </div>
+
+        <div class="cat-grid">
+          {
+            categories.map((cat, i) => {
+              const m = CAT_META[cat];
+              if (!m) return null;
+              const count = catCounts[cat] ?? 0;
+              return (
+                <a
+                  href={`/${cat}/`}
+                  class:list={['cat-card reveal', i < 2 && 'cat-card--wide']}
+                  style={`--card-hue: ${m.hue}; --card-bg: ${m.bg};`}
+                >
+                  <div class="cat-card-icon-wrap" aria-hidden="true">
+                    <span class="cat-card-icon">{m.icon}</span>
+                  </div>
+                  <div class="cat-card-body">
+                    <div class="cat-card-top">
+                      <h3 class="cat-card-name">{cat}</h3>
+                      <span class="cat-card-count">{count} tools</span>
+                    </div>
+                    <p class="cat-card-desc">{m.desc}</p>
+                  </div>
+                  <div class="cat-card-arrow" aria-hidden="true">→</div>
+                  <div class="cat-card-glow" aria-hidden="true"></div>
+                </a>
+              );
+            })
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FEATURED ─────────────────────────────────────────── -->
     {
       featured.length > 0 && (
-        <section class="mb-12">
-          <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2">
-            <span class="text-accent">★</span> 為你推薦
-          </h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {featured.slice(0, 6).map((site) => (
-              <SiteCard
-                title={site.data.title}
-                url={site.data.url}
-                category={site.data.category}
-                body={site.body}
-                featured={site.data.featured}
-              />
-            ))}
+        <section class="featured-section">
+          <div class="container">
+            <div class="section-header reveal">
+              <div class="section-title-row">
+                <h2 class="section-title">
+                  <span class="text-accent">★</span> Featured
+                </h2>
+                <span class="section-badge">{featured.length} tools</span>
+              </div>
+              <p class="section-sub">Ken 親自維護嘅項目，全部實際用過</p>
+            </div>
+
+            <div class="featured-grid">
+              {featured.slice(0, 4).map((site) => (
+                <div class="reveal">
+                  <SiteCard
+                    title={site.data.title}
+                    url={site.data.url}
+                    category={site.data.category}
+                    body={site.body}
+                    featured={true}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {featured.length > 4 && (
+              <p class="featured-more reveal">
+                + {featured.length - 4} more featured tools
+              </p>
+            )}
           </div>
         </section>
       )
     }
 
-    <section>
-      <h2 class="text-2xl font-semibold mb-6">全部</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {all.map((site) => (
-          <SiteCard
-            title={site.data.title}
-            url={site.data.url}
-            category={site.data.category}
-            body={site.body}
-          />
-        ))}
+    <!-- ── ALL TOOLS ─────────────────────────────────────────── -->
+    <section class="all-section">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="section-title-row">
+            <h2 class="section-title">全部 tools</h2>
+            <span class="section-badge">{sites.length} sites</span>
+          </div>
+        </div>
+
+        <div class="all-grid">
+          {sites
+            .filter((s) => !s.data.featured)
+            .sort((a, b) => a.data.order - b.data.order)
+            .map((site) => (
+              <div class="reveal">
+                <SiteCard
+                  title={site.data.title}
+                  url={site.data.url}
+                  category={site.data.category}
+                  body={site.body}
+                />
+              </div>
+            ))}
+        </div>
       </div>
     </section>
 
-    <footer class="mt-16 pt-8 border-t border-border text-fg-faint text-sm font-mono">
-      <p>
-        v2 scaffold · {new Date().toISOString().split('T')[0]} ·{' '}
-        <a href="/rss.xml" class="text-accent hover:underline">RSS</a> ·{' '}
-        <a href="/sitemap-index.xml" class="text-accent hover:underline">sitemap</a>
-      </p>
+    <!-- ── FOOTER ──────────────────────────────────────────── -->
+    <footer class="page-footer">
+      <div class="container">
+        <div class="footer-inner">
+          <div class="footer-left">
+            <p class="footer-label">// TOOL HUB</p>
+            <p class="footer-sub">Ken Cheng · 2026 · v2</p>
+          </div>
+          <div class="footer-right">
+            <a href="/rss.xml" class="footer-link">RSS</a>
+            <span class="footer-sep">·</span>
+            <a href="/sitemap-index.xml" class="footer-link">sitemap</a>
+            <span class="footer-sep">·</span>
+            <a href="https://github.com/ihateusingai-beep/kencheng-homepage-v2" class="footer-link" target="_blank" rel="noopener">
+              GitHub
+            </a>
+          </div>
+        </div>
+      </div>
     </footer>
+
   </main>
+
+  <!-- 3D Tilt — vanilla JS, no dependencies -->
+  <script>
+    function init3DTilt() {
+      var cards = document.querySelectorAll('.kc-card-3d');
+      if (!cards.length) return;
+      cards.forEach(function(card) {
+        card.addEventListener('mousemove', function(e) {
+          var rect = card.getBoundingClientRect();
+          var x = (e.clientX - rect.left) / rect.width - 0.5;
+          var y = (e.clientY - rect.top) / rect.height - 0.5;
+          if (document.documentElement.classList.contains('reduce-motion')) return;
+          card.style.transform =
+            'perspective(600px) rotateX(' + (-y * 10).toFixed(2) + 'deg) rotateY(' + (x * 10).toFixed(2) + 'deg) translateY(-3px) scale(1.02)';
+        });
+        card.addEventListener('mouseleave', function() {
+          card.style.transform = '';
+        });
+      });
+    }
+    // Run after cards render
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init3DTilt);
+    } else {
+      init3DTilt();
+    }
+  </script>
 </BaseLayout>
