@@ -10,7 +10,7 @@ const sites = defineCollection({
   schema: z.object({
     title: z.string().min(1).max(100),
     url: z.string().url(),
-    category: z.enum(['教學', 'AI', '開發', '設計', '學習', '其他']),
+    category: z.enum(['數學', '科學', '教學', 'AI', '開發', '設計', '學習', '其他']),
     tags: z.array(z.string()).default([]),
     featured: z.boolean().default(false),
     // Lower order = shown first. Tie-break by date_added desc.

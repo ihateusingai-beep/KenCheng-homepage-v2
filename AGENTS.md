@@ -59,33 +59,46 @@ npx astro check          # TS strict + content collection schema validate
 
 ## Roadmap / 進度
 
-完整 roadmap 喺 **上層目錄**：`~/workspace/vs code/homepage/kencheng-homepage/v2-roadmap.md`（同 v1 spec 同級）。
+**2026-06-28 Phase 1 完成** — v1 data migration + dynamic routing scaffold：
+- ✅ 63 tools migrated from v1 (`student-tools.json` 40 entries + TOOL_META inference)
+- ✅ 8 category pages auto-generated (`/數學/` `/科學/` `/教學/` `/AI/` `/開發/` `/設計/` `/學習/` `/其他/`)
+- ✅ 9 static pages total (`/` + 8 categories) built per `getStaticPaths`
+- ✅ Category overview text for each page (teaching tips + context)
+- ✅ Category nav chips on main index + cross-links on category pages
+- ✅ Schema expanded: `數學` + `科學` added to category enum + CSS hue tokens
+- ✅ URL slug: Chinese characters (SEO + print friendly)
 
-**Confirm 過嘅 6 features**（優先序）：
-1. **F1** — Fuzzy + tag + regex search（⌘K palette）
-2. **F2** — Site health badge + A1 nightly check 嘅 health 資料源
-3. **F3** — Quick add bookmark（localStorage，無 auth）
-4. **F5** — Folders / ⭐ bookmark grouping
-5. **A1** — Dead link nightly GitHub Action
-6. **A6** — CI smoke gate（5 invariants + Lighthouse ≥90）
+**Pending（優先序）**：
+1. **F2** — Site health badge + A1 nightly check 嘅 health 資料源
+2. **F3** — Quick add bookmark（localStorage，無 auth）
+3. **F4** — F5 folders / ⭐ bookmark grouping
+4. **A1** — Dead link nightly GitHub Action
+5. **A6** — CI smoke gate（5 invariants + Lighthouse ≥90）
+6. **A4** — sitemap + RSS + canonical + OG meta
+7. **A2** — OG image auto-gen
 
-**Pull-in features**（因 full SEO + self-only 自動帶入）：
-- **A2** — OG image auto-gen
-- **A4** — sitemap + RSS + canonical + OG meta
+**Pull-in**：A2, A4（自動帶入）
 
-**Cut**：F4 / F6 / F7 / U1-U8（除 U4）/ V1-V7 individual（落入 V6 polish bundle）/ A3 / A5 / A7 / A8 / PWA
+**Cut**：F4/F6/F7/U1-U8/V1-V7 individual（落入 V6 polish bundle）/ A3/A5/A7/A8/PWA
 
-## 建構產物 baseline（2026-06-27）
+## 建構產物 baseline（2026-06-28, Phase 1 + v1 migration）
 
 | File | Size |
 |------|------|
-| `dist/index.html` | 7,477 B (7.3 KB) |
-| `dist/_astro/index.*.css` | 10,685 B (10.4 KB) |
-| `dist/favicon.svg` | 200 B |
-| **Total `dist/`** | **~24 KB** |
-| **JS bundle** | **0 B** |
+| `dist/index.html` | 54 KB |
+| `dist/數學/index.html` | 20 KB |
+| `dist/科學/index.html` | 15 KB |
+| `dist/教學/index.html` | 15 KB |
+| `dist/AI/index.html` | 16 KB |
+| `dist/開發/index.html` | 17 KB |
+| `dist/_astro/*.css` | 25 KB |
+| **Total `dist/`** | **~220 KB** (all 9 pages + assets) |
+| **Individual page budget** | **< 100 KB** ✅ |
 
-遠低於 100KB budget。Tailwind purge 正常（utility 全部 used，無 dead CSS）。
+8 categories × content distribution：
+- 數學: 15 tools · 科學: 9 · 教學: 9 · AI: 10 · 開發: 11 · 設計: 1 · 學習: 0 · 其他: 8
+- Featured: ken projects (author='ken') marked featured:true
+- 30/63 tools have description (from student-tools.json); 33 auto-titled from slug
 
 ## Gotchas（scaffold 階段發現）
 

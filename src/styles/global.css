@@ -19,12 +19,15 @@
   --color-error: #ef4444;
 
   /* V3 — Category hue system (V6 polish pass) */
-  --color-cat-ai: #00d4ff;        /* cyan   — AI / LLM */
-  --color-cat-teaching: #10b981;  /* emerald — 教學 */
-  --color-cat-dev: #a855f7;       /* purple — 開發 */
-  --color-cat-design: #ec4899;    /* pink   — 設計 */
-  --color-cat-learning: #f59e0b;  /* amber  — 學習 */
-  --color-cat-other: #6b7280;     /* gray   — 其他 */
+  /* Category hue tokens — 8 subjects */
+  --color-cat-ai:       #00d4ff;  /* cyan     — AI */
+  --color-cat-teaching: #10b981;  /* emerald  — 教學 */
+  --color-cat-math:     #f59e0b;  /* amber    — 數學 */
+  --color-cat-science:  #06b6d4;  /* cyan-600 — 科學 */
+  --color-cat-dev:      #a855f7;  /* purple   — 開發 */
+  --color-cat-design:   #ec4899;  /* pink     — 設計 */
+  --color-cat-learning: #f97316;  /* orange   — 學習 */
+  --color-cat-other:    #6b7280;  /* gray     — 其他 */
 
   /* Typography */
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',

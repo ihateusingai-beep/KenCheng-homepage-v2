@@ -22,6 +22,22 @@ const all = [...sites].sort((a, b) => a.data.order - b.data.order);
 
 const categories = [...new Set(sites.map((s) => s.data.category))];
 const aiCount = sites.filter((s) => s.data.category === 'AI').length;
+
+// Category chip meta
+const CAT_CHIP: Record<string, { icon: string; color: string }> = {
+  '數學': { icon: '🔢', color: 'text-amber-500' },
+  '科學': { icon: '🔬', color: 'text-cyan-600' },
+  '教學': { icon: '📚', color: 'text-emerald-500' },
+  'AI':   { icon: '🤖', color: 'text-cyan-400' },
+  '開發': { icon: '⚙️', color: 'text-purple-500' },
+  '設計': { icon: '🎨', color: 'text-pink-500' },
+  '學習': { icon: '💡', color: 'text-orange-500' },
+  '其他': { icon: '📌', color: 'text-gray-400' },
+};
+
+const catCounts = Object.fromEntries(
+  categories.map((cat) => [cat, sites.filter((s) => s.data.category === cat).length])
+);
 ---
 
 <BaseLayout title="Ken Cheng — 教學工具導航站">
@@ -56,6 +72,35 @@ const aiCount = sites.filter((s) => s.data.category === 'AI').length;
         <kbd class="kc-inline-kbd">/</kbd> 開 search palette
       </p>
     </header>
+
+    <!-- Category quick-nav chips -->
+    <nav class="mb-10" aria-label="Category navigation">
+      <p class="text-xs font-mono text-fg-dim uppercase tracking-wide mb-3">範疇</p>
+      <div class="flex flex-wrap gap-3">
+        {
+          categories.map((cat) => {
+            const chip = CAT_CHIP[cat] ?? { icon: '📌', color: 'text-gray-400' };
+            const count = catCounts[cat] ?? 0;
+            return (
+              <a
+                href={`/${cat}/`}
+                class:list={[
+                  'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium',
+                  'border border-border bg-bg-secondary',
+                  'hover:border-accent hover:text-accent transition-colors',
+                ]}
+              >
+                <span>{chip.icon}</span>
+                <span>{cat}</span>
+                <span class:list={['text-xs font-mono', chip.color, 'opacity-70']}>
+                  {count}
+                </span>
+              </a>
+            );
+          })
+        }
+      </div>
+    </nav>
 
     {
       featured.length > 0 && (

@@ -34,6 +34,8 @@ const hostname = new URL(url).hostname.replace(/^www\./, '');
 // Fallback to `other` for unknown categories — safe by default.
 const CAT_VAR_MAP: Record<string, string> = {
   'AI': 'ai',
+  '數學': 'math',
+  '科學': 'science',
   '教學': 'teaching',
   '開發': 'dev',
   '設計': 'design',
