@@ -1,8 +1,12 @@
-# kencheng-homepage-v2
+# Ken Cheng 教學工具導航站 v2
+
+> **Official project (2026-06-28)** — replaces [kencheng-homepage](https://github.com/ihateusingai-beep/kencheng-homepage)（soft deprecated，5 秒後自動跳轉到 v2 URL）
+>
+> **Status**: V6 polish pass shipped — F1 ⌘K palette + card hover/focus/cat-hue + KPI hero tiles。Sample data 4 sites (Anthropic / Figma / GitHub / Phind)。
 
 Ken Cheng 教學工具導航站 v2 — **Astro 7 + Tailwind v4** rewrite。Pure static output，GitHub Pages 托管。
 
-> **v2 status**: scaffold pass（2026-06-27）。Feature 開發 staged — 見 `~/workspace/vs code/homepage/kencheng-homepage/v2-roadmap.md`。
+> **Roadmap doc**: 舊 `~/workspace/vs code/homepage/kencheng-homepage/v2-roadmap.md` (24KB untracked, 2026-06-27 draft) 已 trashed during repo migration。Staged features 摘要喺下面 Roadmap section。要 retrieve 完整 doc：macOS Finder → Trash → right-click `v2-roadmap.md` → Put Back。
 
 ## 快速開始
 
