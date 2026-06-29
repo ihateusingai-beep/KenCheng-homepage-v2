@@ -13,6 +13,7 @@ const paletteData = sites.map((s) => ({
   tags: s.data.tags,
   featured: s.data.featured,
   hostname: new URL(s.data.url).hostname.replace(/^www\./, ''),
+  health: s.data.health ?? 'unverified',
 }));
 
 const featured = sites
@@ -231,6 +232,7 @@ const catCounts = Object.fromEntries(
                     category={site.data.category}
                     body={site.body}
                     featured={true}
+                    health={site.data.health}
                   />
                 </div>
               ))}
@@ -267,6 +269,7 @@ const catCounts = Object.fromEntries(
                   url={site.data.url}
                   category={site.data.category}
                   body={site.body}
+                  health={site.data.health}
                 />
               </div>
             ))}
@@ -300,13 +303,14 @@ const catCounts = Object.fromEntries(
   <!-- 3D Tilt — vanilla JS, no dependencies -->
   <script>
     function init3DTilt() {
-      var cards = document.querySelectorAll('.kc-card-3d');
+      var cards = document.querySelectorAll<HTMLElement>('.kc-card-3d');
       if (!cards.length) return;
       cards.forEach(function(card) {
         card.addEventListener('mousemove', function(e) {
+          var evt = e as MouseEvent;
           var rect = card.getBoundingClientRect();
-          var x = (e.clientX - rect.left) / rect.width - 0.5;
-          var y = (e.clientY - rect.top) / rect.height - 0.5;
+          var x = (evt.clientX - rect.left) / rect.width - 0.5;
+          var y = (evt.clientY - rect.top) / rect.height - 0.5;
           if (document.documentElement.classList.contains('reduce-motion')) return;
           card.style.transform =
             'perspective(600px) rotateX(' + (-y * 10).toFixed(2) + 'deg) rotateY(' + (x * 10).toFixed(2) + 'deg) translateY(-3px) scale(1.02)';

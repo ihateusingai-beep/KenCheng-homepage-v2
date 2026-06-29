@@ -434,6 +434,62 @@ body.kc-palette-open .kc-palette-panel {
   letter-spacing: 0.05em;
 }
 
+/* =========================================================================
+   F2 — Health badge (dead-link check)
+   ---------------------------------------------------------------------------
+   Colour-coded dot per status, used in both palette results and SiteCards.
+   alive = green  · redirect = amber  · dead = red
+   slow = orange  · unverified = dim gray
+   ========================================================================= */
+.kc-health-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  line-height: 1;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.kc-health-alive {
+  background: rgba(16, 185, 129, 0.18);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.kc-health-redirect {
+  background: rgba(245, 158, 11, 0.18);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.kc-health-dead {
+  background: rgba(239, 68, 68, 0.18);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.kc-health-slow {
+  background: rgba(249, 115, 22, 0.18);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+}
+
+.kc-health-unverified {
+  background: rgba(107, 114, 128, 0.18);
+  color: #6b7280;
+  border: 1px solid rgba(107, 114, 128, 0.35);
+}
+
+/* Palette result row — tighter spacing when health badge present */
+.kc-result-meta {
+  gap: 4px;
+}
+
 /* Reduced motion — disable palette animations */
 @media (prefers-reduced-motion: reduce) {
   .kc-palette,
@@ -687,6 +743,23 @@ body.kc-palette-open .kc-palette-panel {
 /* When featured badge present, push cat-chip down so they don't overlap */
 .kc-card:has(.kc-card-featured-badge) .kc-card-cat-chip {
   margin-top: 22px;
+}
+
+/* Badges row — flex container in top-right area */
+.card-badges-row {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Override featured badge absolute positioning when in badges row */
+.kc-card-featured-badge {
+  position: static;
 }
 
 /* =========================================================================

@@ -57,6 +57,9 @@ export async function getStaticPaths() {
   return cats.map((cat) => ({
     params: { category: cat },
     props: {
+      // All sites for palette (⌘K searches across entire catalog)
+      allSites: sites,
+      // Category-filtered for display
       sites: sites
         .filter((s) => s.data.category === cat)
         .sort((a, b) => a.data.order - b.data.order),
@@ -65,17 +68,18 @@ export async function getStaticPaths() {
 }
 
 const { category } = Astro.params;
-const { sites } = Astro.props;
+const { sites, allSites } = Astro.props;
 const meta = CAT_META[category] ?? { icon: '📌', label: category, desc: '' };
 
-// Slim payload for ⌘K palette
-const paletteData = sites.map((s) => ({
+// Slim payload for ⌘K palette — ALL sites, so ⌘K works from any page
+const paletteData = allSites.map((s) => ({
   title: s.data.title,
   url: s.data.url,
   category: s.data.category,
   tags: s.data.tags,
   featured: s.data.featured,
   hostname: new URL(s.data.url).hostname.replace(/^www\./, ''),
+  health: s.data.health ?? 'unverified',
 }));
 
 const totalCount = sites.length;
@@ -136,6 +140,7 @@ const featured = sites.filter((s) => s.data.featured);
                 category={site.data.category}
                 body={site.body}
                 featured={site.data.featured}
+                health={site.data.health}
               />
             ))}
           </div>
@@ -165,6 +170,7 @@ const featured = sites.filter((s) => s.data.featured);
                 url={site.data.url}
                 category={site.data.category}
                 body={site.body}
+                health={site.data.health}
               />
             ))}
           </div>

@@ -5,9 +5,11 @@
  * V6 polish pass (2026-06-27):
  * - Hover micro-interaction: translateY(-2px) + cat-hue glow + radial overlay
  * - Cat-hue CSS var injected via inline style → all descendants (chip, link,
- *   badge, focus glow) derive from it via `var(--cat-hue, fallback)`.
+ *   badge, focus glow) all derive from it via `var(--cat-hue, fallback)`.
  * - Featured badge + left border stripe for visual differentiation.
  * - Title truncates with ellipsis on narrow widths; cat-chip stays full.
+ *
+ * Sprint 1 (2026-06-29): F2 health badge added — colour-coded dot in top-right.
  */
 interface Props {
   title: string;
@@ -15,6 +17,7 @@ interface Props {
   category: string;
   body?: string;
   featured?: boolean;
+  health?: 'alive' | 'redirect' | 'dead' | 'slow' | 'unverified';
   /** @deprecated kept for back-compat; use `featured` only. */
   variant?: 'featured' | 'default';
 }
@@ -25,6 +28,7 @@ const {
   category,
   body = '',
   featured = false,
+  health = 'unverified',
   variant = 'default',
 } = Astro.props;
 
@@ -45,6 +49,16 @@ const CAT_VAR_MAP: Record<string, string> = {
 const catKey = CAT_VAR_MAP[category] ?? 'other';
 
 const isFeatured = featured || variant === 'featured';
+
+// Health badge meta
+const HEALTH_META: Record<string, { label: string; cls: string; title: string }> = {
+  alive:      { label: '●', cls: 'kc-health-alive',      title: '正常' },
+  redirect:   { label: '→', cls: 'kc-health-redirect',   title: '跳轉' },
+  dead:       { label: '✕', cls: 'kc-health-dead',       title: '失效' },
+  slow:       { label: '◐', cls: 'kc-health-slow',      title: '緩慢' },
+  unverified: { label: '?', cls: 'kc-health-unverified',  title: '未驗證' },
+};
+const healthMeta = HEALTH_META[health] ?? HEALTH_META['unverified'];
 ---
 
 <article
@@ -52,11 +66,20 @@ const isFeatured = featured || variant === 'featured';
   data-category={category}
   style={`--cat-hue: var(--color-cat-${catKey});`}
 >
-  {isFeatured && (
-    <div class="kc-card-featured-badge" aria-label="Featured">
-      ★ FEATURED
-    </div>
-  )}
+  <!-- Badges row: featured (left) + health (right) -->
+  <div class="card-badges-row" aria-hidden="true">
+    {isFeatured && (
+      <span class="kc-card-featured-badge">★ FEATURED</span>
+    )}
+    <span
+      class={`kc-health-dot ${healthMeta.cls}`}
+      title={healthMeta.title}
+      aria-label={healthMeta.title}
+    >
+      {healthMeta.label}
+    </span>
+  </div>
+
   <div class="flex items-start justify-between mb-2 gap-2">
     <h3 class="kc-card-title">{title}</h3>
     <span class="kc-card-cat-chip">{category}</span>

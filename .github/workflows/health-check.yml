@@ -1,0 +1,218 @@
+name: Link Health Check
+
+on:
+  schedule:
+    # Run at 03:00 UTC daily — low-traffic window
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'report'
+        type: choice
+        options:
+          - report
+          - update-files
+
+concurrency:
+  group: health-check
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Check links
+        id: check
+        run: |
+          pip install --quiet httpx aiofiles
+
+          python << 'EOF'
+          import asyncio, json, os, re, shlex, subprocess, sys, time
+          from pathlib import Path
+
+          # ── 1. Collect URLs from frontmatter ────────────────────────────────
+          content_dir = Path('src/content/sites')
+          urls: list[dict] = []
+
+          for md in sorted(content_dir.glob('*.md')):
+              text = md.read_text(encoding='utf-8')
+              # Extract frontmatter url field
+              m = re.search(r'^url:\s*([^\s]+)', text, re.MULTILINE)
+              # Extract frontmatter health field
+              hm = re.search(r'^health:\s*(\w+)', text, re.MULTILINE)
+              if not m:
+                  continue
+              url = m.group(1).rstrip('"\' ')
+              slug = md.stem
+              old_health = hm.group(1) if hm else 'unverified'
+              urls.append({'slug': slug, 'url': url, 'old_health': old_health})
+
+          print(f'::notice::Found {len(urls)} sites to check')
+
+          # ── 2. Check each URL ──────────────────────────────────────────────
+          async def check_one(client, slug, url):
+              status_code = None
+              new_health = 'dead'
+              response_time_ms = None
+              final_url = None
+
+              try:
+                  start = time.perf_counter()
+                  resp = await client.get(
+                      url,
+                      follow_redirects=True,
+                      timeout=httpx.Timeout(12.0),
+                      headers={'User-Agent': 'KenCheng-HomepageHealthCheck/1.0'}
+                  )
+                  elapsed_ms = (time.perf_counter() - start) * 1000
+                  status_code = resp.status_code
+                  response_time_ms = round(elapsed_ms)
+
+                  if 200 <= status_code < 400:
+                      new_health = 'alive'
+                  elif 300 <= status_code < 400:
+                      new_health = 'redirect'
+                  elif status_code >= 500:
+                      new_health = 'dead'
+                  else:
+                      new_health = 'dead'
+              except httpx.TimeoutException:
+                  new_health = 'slow'
+              except httpx.RequestError:
+                  new_health = 'dead'
+
+              changed = (old_health != new_health)
+              return {'slug': slug, 'url': url, 'old_health': old_health,
+                      'new_health': new_health, 'status_code': status_code,
+                      'response_time_ms': response_time_ms, 'changed': changed}
+
+          async def run_all(urls):
+              async with httpx.AsyncClient() as client:
+                  tasks = [check_one(client, u['slug'], u['url']) for u in urls]
+                  results = await asyncio.gather(*tasks, return_exceptions=True)
+              return [r for r in results if not isinstance(r, Exception)]
+
+          results = asyncio.run(run_all(urls))
+
+          # ── 3. Persist results ──────────────────────────────────────────────
+          out = Path('health-report.json')
+          out.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding='utf-8')
+          print(f'Wrote {len(results)} results to health-report.json')
+
+          # ── 4. Print summary for GitHub Actions summary ─────────────────────
+          alive_n     = sum(1 for r in results if r['new_health'] == 'alive')
+          redirect_n  = sum(1 for r in results if r['new_health'] == 'redirect')
+          dead_n      = sum(1 for r in results if r['new_health'] == 'dead')
+          slow_n      = sum(1 for r in results if r['new_health'] == 'slow')
+          unverif_n   = sum(1 for r in results if r['new_health'] == 'unverified')
+          changed_n   = sum(1 for r in results if r['changed'])
+
+          print(f'SUMMARY: alive={alive_n} redirect={redirect_n} dead={dead_n} slow={slow_n} unverified={unverif_n} changed={changed_n}')
+
+          # Write step summary for GitHub Actions summary markdown
+          summary_md = Path('health-summary.md')
+          with open(summary_md, 'w', encoding='utf-8') as f:
+              f.write('# Link Health Check Report\n\n')
+              f.write(f'| Status | Count |\n|--------|-------|\n')
+              f.write(f'| 🟢 Alive | {alive_n} |\n')
+              f.write(f'| 🟡 Redirect | {redirect_n} |\n')
+              f.write(f'| 🔴 Dead | {dead_n} |\n')
+              f.write(f'| 🟠 Slow | {slow_n} |\n')
+              f.write(f'| ⚪ Unverified | {unverif_n} |\n')
+              f.write(f'\n**{changed_n} sites changed status.**\n\n')
+              f.write('## Changed sites\n\n')
+              f.write('| Site | Old | New | Status |\n')
+              f.write('|------|-----|-----|--------|\n')
+              for r in results:
+                  if r['changed']:
+                      status_str = str(r['status_code']) if r['status_code'] else 'timeout'
+                      f.write(f"| {r['slug']} | {r['old_health']} | {r['new_health']} | {status_str} |\n")
+          print(f'Wrote summary to health-summary.md')
+
+          # Write environment variables for subsequent steps
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f'alive_count={alive_n}\n')
+              f.write(f'redirect_count={redirect_n}\n')
+              f.write(f'dead_count={dead_n}\n')
+              f.write(f'slow_count={slow_n}\n')
+              f.write(f'unverif_count={unverif_n}\n')
+              f.write(f'changed_count={changed_n}\n')
+              f.write(f'total_count={len(results)}\n')
+
+          sys.exit(0 if dead_n == 0 else 1)  # exit 1 if any dead links found
+
+          EOF
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: health-report
+          path: health-report.json
+          retention-days: 30
+
+      - name: Post summary to PR / commit
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'update-files'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python << 'EOF'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path('health-report.json').read_text())
+          content_dir = Path('src/content/sites')
+
+          changed = 0
+          for r in report:
+              if not r['changed']:
+                  continue
+              slug = r['slug']
+              md_path = content_dir / f'{slug}.md'
+              if not md_path.exists():
+                  print(f'::warning::File not found: {slug}.md')
+                  continue
+
+              text = md_path.read_text(encoding='utf-8')
+              # Replace health field in frontmatter
+              import re
+              if re.search(r'^health:', text, re.MULTILINE):
+                  new_text = re.sub(r'^health:.*$', f"health: {r['new_health']}", text, flags=re.MULTILINE)
+              else:
+                  # Add health after url field
+                  new_text = re.sub(r'^(url:.*)$', r'\1\nhealth: ' + r['new_health'], text, flags=re.MULTILINE)
+
+              md_path.write_text(new_text, encoding='utf-8')
+              print(f'Updated {slug}.md → {r["new_health"]}')
+              changed += 1
+
+          print(f'Updated {changed} files')
+          print(f'::set-output name=changed_files::{changed}')
+          EOF
+
+      - name: Commit updated health fields
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'update-files'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add src/content/sites/
+          git diff --cached --stat
+          git commit -m "chore(health): update link status from nightly check" || echo "No changes to commit"
+          git push

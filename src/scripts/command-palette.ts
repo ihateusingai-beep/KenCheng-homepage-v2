@@ -17,6 +17,7 @@ interface Site {
   tags: string[];
   featured: boolean;
   hostname: string;
+  health: 'alive' | 'redirect' | 'dead' | 'slow' | 'unverified';
 }
 
 interface IndexEntry {
@@ -158,6 +159,21 @@ function scoreSite(query: string, site: Site, haystack: string): number | null {
 function filterByTags(sites: Site[], selectedTags: Set<string>): Site[] {
   if (selectedTags.size === 0) return sites;
   return sites.filter((s) => s.tags.some((t) => selectedTags.has(t)));
+}
+
+// ----- Health badge -----
+
+const HEALTH_META: Record<string, { label: string; cls: string; title: string }> = {
+  alive:      { label: '●', cls: 'kc-health-alive',      title: '正常' },
+  redirect:   { label: '→', cls: 'kc-health-redirect',   title: '跳轉' },
+  dead:       { label: '✕', cls: 'kc-health-dead',       title: '失效' },
+  slow:       { label: '◐', cls: 'kc-health-slow',      title: '緩慢' },
+  unverified: { label: '?', cls: 'kc-health-unverified',  title: '未驗證' },
+};
+
+function healthBadgeHtml(health: string): string {
+  const m = HEALTH_META[health] ?? HEALTH_META['unverified'];
+  return `<span class="kc-health-dot ${m.cls}" title="${m.title}" aria-label="${m.title}">${m.label}</span>`;
 }
 
 // ----- HTML escaping -----
@@ -408,6 +424,7 @@ class CommandPalette {
       <div class="kc-result-meta">
         <span class="kc-result-cat">${escapeHtml(r.site.category)}</span>
         ${r.site.featured ? '<span class="kc-result-star" aria-label="featured">★</span>' : ''}
+        ${healthBadgeHtml(r.site.health)}
       </div>
     </li>`;
   }
