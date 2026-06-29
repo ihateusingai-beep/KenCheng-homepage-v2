@@ -4,8 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://ihateusingai-beep.github.io',
-  base: '/KenCheng-homepage-v2',
+  site: 'https://ihateusingai-beep.github.io/KenCheng-homepage-v2',
   output: 'static',
   trailingSlash: 'ignore',
   build: {
