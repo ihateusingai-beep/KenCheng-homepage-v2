@@ -154,7 +154,7 @@ const catCounts = Object.fromEntries(
                 const m = CAT_META[cat];
                 if (!m) return null;
                 return (
-                  <a href={`/${cat}/`} class="hero-cat-pill" style={`--pill-hue: ${m.hue};`}>
+                  <a href={`/KenCheng-homepage-v2/${cat}/`} class="hero-cat-pill" style={`--pill-hue: ${m.hue};`}>
                     <span class="hero-cat-icon">{m.icon}</span>
                     <span class="hero-cat-name">{cat}</span>
                     <span class="hero-cat-count">{catCounts[cat] ?? 0}</span>
@@ -182,8 +182,8 @@ const catCounts = Object.fromEntries(
               if (!m) return null;
               const count = catCounts[cat] ?? 0;
               return (
-                <a
-                  href={`/${cat}/`}
+                  <a
+                  href={`/KenCheng-homepage-v2/${cat}/`}
                   class:list={['cat-card reveal', i < 2 && 'cat-card--wide']}
                   style={`--card-hue: ${m.hue}; --card-bg: ${m.bg};`}
                 >
@@ -283,9 +283,9 @@ const catCounts = Object.fromEntries(
             <p class="footer-sub">Ken Cheng · 2026 · v2</p>
           </div>
           <div class="footer-right">
-            <a href="/rss.xml" class="footer-link">RSS</a>
+            <a href="/KenCheng-homepage-v2/rss.xml" class="footer-link">RSS</a>
             <span class="footer-sep">·</span>
-            <a href="/sitemap-index.xml" class="footer-link">sitemap</a>
+            <a href="/KenCheng-homepage-v2/sitemap-index.xml" class="footer-link">sitemap</a>
             <span class="footer-sep">·</span>
             <a href="https://github.com/ihateusingai-beep/kencheng-homepage-v2" class="footer-link" target="_blank" rel="noopener">
               GitHub

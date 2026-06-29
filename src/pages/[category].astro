@@ -90,7 +90,7 @@ const featured = sites.filter((s) => s.data.featured);
     <!-- Breadcrumb -->
     <nav class="mb-8" aria-label="Breadcrumb">
       <ol class="flex items-center gap-2 text-sm text-fg-dim font-mono">
-        <li><a href="/" class="text-accent hover:underline">🏠 主頁</a></li>
+        <li><a href="/KenCheng-homepage-v2/" class="text-accent hover:underline">🏠 主頁</a></li>
         <li aria-hidden="true">/</li>
         <li class="text-fg">{meta.icon} {meta.label}</li>
       </ol>
@@ -154,7 +154,7 @@ const featured = sites.filter((s) => s.data.featured);
             <p class="text-4xl mb-4">🔍</p>
             <p class="text-lg mb-2">呢個範疇暫時未有工具</p>
             <p class="text-sm">
-              <a href="/" class="text-accent hover:underline">返回主頁</a> 探索其他範疇
+              <a href="/KenCheng-homepage-v2/" class="text-accent hover:underline">返回主頁</a> 探索其他範疇
             </p>
           </div>
         ) : (
@@ -181,7 +181,7 @@ const featured = sites.filter((s) => s.data.featured);
             const m = CAT_META[c];
             return (
               <a
-                href={`/${c}/`}
+                href={`/KenCheng-homepage-v2/${c}/`}
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border border-border bg-bg-secondary text-fg hover:border-accent hover:text-accent transition-colors"
               >
                 <span>{m?.icon ?? '📌'}</span>
@@ -195,7 +195,7 @@ const featured = sites.filter((s) => s.data.featured);
 
     <footer class="mt-12 pt-8 border-t border-border text-fg-faint text-sm font-mono">
       <p>
-        <a href="/" class="text-accent hover:underline">← 主頁</a> · v2 · {new Date().toISOString().split('T')[0]}
+        <a href="/KenCheng-homepage-v2/" class="text-accent hover:underline">← 主頁</a> · v2 · {new Date().toISOString().split('T')[0]}
       </p>
     </footer>
   </main>
