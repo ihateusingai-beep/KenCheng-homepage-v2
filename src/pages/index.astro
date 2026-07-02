@@ -248,22 +248,37 @@ const catCounts = Object.fromEntries(
       )
     }
 
-    <!-- ── ALL TOOLS ─────────────────────────────────────────── -->
-    <section class="all-section">
+    <!-- ── FILTER BAR ────────────────────────────────────────── -->
+    <section class="all-section" style="padding-bottom: 0;">
       <div class="container">
-        <div class="section-header reveal">
+        <div class="section-header reveal" style="margin-bottom: 20px;">
           <div class="section-title-row">
             <h2 class="section-title">全部 tools</h2>
-            <span class="section-badge">{sites.length} sites</span>
+            <span class="section-badge" id="filter-count">{sites.filter(s => !s.data.featured).length} sites</span>
           </div>
         </div>
 
-        <div class="all-grid">
+        <!-- Filter bar — client-side, URL-synced -->
+        <div class="filter-bar-wrap reveal">
+          <div class="kc-filter-bar" role="group" aria-label="工具分類篩選">
+            <span class="kc-filter-label">範疇</span>
+            <div class="filter-chips-row" id="filter-cat-chips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+            <div class="kc-filter-sep" aria-hidden="true"></div>
+            <div class="filter-chips-row" id="filter-reset-wrap" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ALL TOOLS ─────────────────────────────────────────── -->
+    <section class="all-section">
+      <div class="container">
+        <div class="all-grid" id="site-grid">
           {sites
             .filter((s) => !s.data.featured)
             .sort((a, b) => a.data.order - b.data.order)
             .map((site) => (
-              <div class="reveal">
+              <div class="reveal" data-category={site.data.category}>
                 <SiteCard
                   title={site.data.title}
                   url={site.data.url}
@@ -274,6 +289,9 @@ const catCounts = Object.fromEntries(
               </div>
             ))}
         </div>
+        <p id="filter-empty" class="filter-empty-msg" style="display:none;text-align:center;padding:48px 0;color:var(--color-fg-faint);font-family:var(--font-mono);font-size:14px;">
+          冇匹配嘅 tools，試下其他範疇 👀
+        </p>
       </div>
     </section>
 

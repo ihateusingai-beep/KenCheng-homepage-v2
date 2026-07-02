@@ -45,7 +45,11 @@ const canonicalURL = new URL(Astro.url.pathname, siteUrl);
     <!-- RSS auto-discovery -->
     <link rel="alternate" type="application/rss+xml" title={title} href="/KenCheng-homepage-v2/rss.xml" />
 
+    <!-- PWA -->
+    <link rel="manifest" href="/KenCheng-homepage-v2/manifest.json" />
     <meta name="theme-color" content="#0a0a0a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   </head>
   <body>
     <a
@@ -55,17 +59,48 @@ const canonicalURL = new URL(Astro.url.pathname, siteUrl);
       Skip to main content
     </a>
 
+    <!-- Top bar: theme + motion toggles -->
+    <div class="container">
+      <div class="kc-topbar" aria-label="設定">
+        <button
+          class="kc-icon-btn"
+          data-action="toggle-theme"
+          aria-label="切換深色/淺色模式"
+          title="深色/淺色模式"
+        >🌙</button>
+        <button
+          class="kc-icon-btn"
+          data-action="toggle-motion"
+          aria-label="停用動畫效果"
+          title="動畫效果"
+        >▶</button>
+      </div>
+    </div>
+
     <slot />
 
-    <!-- F1: ⌘K command palette (HTML + bundled TS injected below) -->
+    <!-- F1: ⌘K command palette -->
     <CommandPalette />
 
-    <!-- Client script — bundled by Astro/Vite, side-effect import -->
+    <!-- Client scripts — bundled by Astro/Vite -->
     <script>
       import '../scripts/command-palette';
+      import '../scripts/filter';
+      import '../scripts/theme';
     </script>
 
-    <!-- Scroll-reveal: IntersectionObserver fade-in for .reveal elements -->
+    <!-- Service Worker registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/KenCheng-homepage-v2/sw.js').catch(() => {
+            // SW registration failure is non-fatal
+          });
+        });
+      }
+    </script>
+
+    <!-- Scroll-reveal -->
     <script>
       const io = new IntersectionObserver(
         (entries) => {

@@ -59,6 +59,133 @@ body {
   color: var(--color-bg);
 }
 
+/* =========================================================================
+   Theme Toggle + Reduce Motion
+   ========================================================================= */
+.kc-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.kc-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-fg-dim);
+  cursor: pointer;
+  font-size: 16px;
+  transition: border-color 150ms, color 150ms, background 150ms;
+}
+.kc-icon-btn:hover {
+  border-color: var(--color-border-bright);
+  color: var(--color-fg);
+  background: var(--color-bg-soft);
+}
+.kc-icon-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.kc-icon-btn.kc-active {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: rgba(0, 212, 255, 0.08);
+}
+
+/* Light mode overrides */
+html.light {
+  --color-bg: #f8f9fa;
+  --color-bg-elev: #ffffff;
+  --color-bg-soft: #f1f3f4;
+  --color-fg: #1a1a2e;
+  --color-fg-dim: #4a5568;
+  --color-fg-faint: #9ca3af;
+  --color-border: #e5e7eb;
+  --color-border-bright: #d1d5db;
+  --color-accent: #3b82f6;
+  --color-accent-dim: #2563eb;
+  --color-accent-glow: rgba(59, 130, 246, 0.3);
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+}
+html.light .hero-grid {
+  background:
+    radial-gradient(ellipse 90% 65% at 18% 38%, rgba(99, 102, 241, 0.35) 0%, rgba(99, 102, 241, 0.15) 40%, transparent 70%),
+    radial-gradient(ellipse 75% 55% at 72% 28%, rgba(236, 72, 153, 0.25) 0%, rgba(236, 72, 153, 0.1) 40%, transparent 65%),
+    radial-gradient(ellipse 85% 60% at 50% 72%, rgba(34, 211, 238, 0.30) 0%, rgba(34, 211, 238, 0.1) 40%, transparent 68%),
+    linear-gradient(160deg, #f8f9fa 0%, #e8eaf6 40%, #ede7f6 70%, #f8f9fa 100%);
+}
+html.light .hero-grid::after {
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.06) 1px, transparent 1px);
+}
+html.light .hero-glow {
+  background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.12) 0%, rgba(59, 130, 246, 0.08) 40%, transparent 70%);
+}
+html.light .kc-card {
+  background: var(--color-bg-elev);
+  border-color: var(--color-border);
+}
+html.light .kc-card-3d {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+html.light .kc-inline-kbd {
+  background: var(--color-bg-soft);
+  border-color: var(--color-border);
+}
+html.light .featured-cta {
+  background: rgba(255, 255, 255, 0.9);
+}
+html.light .page-footer { border-top-color: var(--color-border); }
+
+/* Reduced motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+.reduce-motion .hero-grid,
+.reduce-motion .hero-grid::after {
+  animation: none !important;
+}
+.reduce-motion .label-dot {
+  animation: none !important;
+}
+.reduce-motion .featured-cta {
+  animation: none !important;
+}
+
+/* Utility: hide filtered-out cards */
+.kc-hidden { display: none !important; }
+
+/* Filter empty state */
+.filter-empty-msg {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--color-fg-faint);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
 /* Scrollbar — thin cyber */
 @media (pointer: fine) {
   ::-webkit-scrollbar {
@@ -1329,6 +1456,74 @@ body.kc-palette-open .kc-palette-panel {
 }
 .footer-link:hover { color: var(--color-fg); }
 .footer-sep { opacity: 0.4; }
+
+/* =========================================================================
+   Filter Bar — client-side category + audience filter with URL state sync
+   ========================================================================= */
+.kc-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 0;
+  flex-wrap: wrap;
+}
+
+.kc-filter-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-fg-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.kc-filter-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border);
+  flex-shrink: 0;
+}
+
+.kc-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--color-fg-dim);
+  cursor: pointer;
+  transition:
+    border-color 150ms var(--ease-cyber),
+    background 150ms var(--ease-cyber),
+    color 150ms var(--ease-cyber);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.kc-filter-chip:hover {
+  border-color: var(--color-border-bright);
+  color: var(--color-fg);
+}
+.kc-filter-chip:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.kc-filter-chip.kc-active {
+  background: rgba(0, 212, 255, 0.12);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.kc-filter-chip .chip-icon { font-size: 12px; }
+.kc-filter-chip .chip-count {
+  font-size: 10px;
+  color: var(--color-fg-faint);
+  opacity: 0.7;
+}
+.kc-filter-chip.kc-active .chip-count { color: inherit; opacity: 0.8; }
 
 /* ── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 640px) {

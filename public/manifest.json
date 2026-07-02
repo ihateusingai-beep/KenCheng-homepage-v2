@@ -1,0 +1,32 @@
+{
+  "name": "Ken Cheng 教學工具導航站",
+  "short_name": "Tool Hub",
+  "description": "Ken Cheng 嘅教學工具、AI 應用、開發工具 curated 目錄",
+  "start_url": "/KenCheng-homepage-v2/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#00d4ff",
+  "lang": "zh-Hant",
+  "categories": ["education", "utilities"],
+  "icons": [
+    {
+      "src": "/KenCheng-homepage-v2/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "全部 AI 工具",
+      "url": "/KenCheng-homepage-v2/AI/",
+      "description": "瀏覽所有 AI 工具"
+    },
+    {
+      "name": "數學工具",
+      "url": "/KenCheng-homepage-v2/數學/",
+      "description": "瀏覽數學教學工具"
+    }
+  ]
+}

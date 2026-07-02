@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ken Cheng 教學工具導航站 v2 — 產品優化提案</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f5f0;
+  --card: #ffffff;
+  --line: #e9e3d6;
+  --text: #14171e;
+  --muted: #6b7280;
+  --accent: #2f6f5e;
+  --accent-light: #d1fae5;
+  --accent2: #c97b3f;
+  --accent2-light: #fef3c7;
+  --accent3: #6366f1;
+  --accent3-light: #ede9fe;
+  --accent4: #dc2626;
+  --accent4-light: #fee2e2;
+  --accent5: #0891b2;
+  --accent5-light: #cffafe;
+  --font: 'Noto Sans TC', 'Noto Sans', system-ui, sans-serif;
+  --font-serif: 'DM Serif Display', 'Noto Serif CJK', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--accent); color: #fff; }
+
+/* ── Layout ── */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 28px; }
+.page-header {
+  padding: 64px 0 48px;
+  position: relative;
+}
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; width: 480px; height: 320px;
+  background: radial-gradient(ellipse at 80% 20%, rgba(47,111,94,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.breadcrumb {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  margin-bottom: 20px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+.subtitle {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 600px;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+.meta-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 56px;
+}
+.meta-chip {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--line);
+  color: var(--muted);
+}
+.meta-chip.highlight { background: var(--accent-light); color: var(--accent); }
+
+/* ── Section ── */
+.section { padding: 48px 0; border-bottom: 1px solid var(--line); }
+.section:last-child { border-bottom: none; }
+.section-label {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(24px, 3.5vw, 36px);
+  font-weight: 400;
+  line-height: 1.2;
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+.section-intro {
+  color: var(--muted);
+  max-width: 580px;
+  margin-bottom: 32px;
+  font-size: 14.5px;
+  line-height: 1.65;
+}
+.section-divider {
+  width: 40px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  margin: 12px 0 24px;
+}
+
+/* ── Card Grid ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.feature-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.feature-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  transform: translateY(-1px);
+}
+.card-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px;
+  font-size: 18px;
+}
+.icon-green { background: var(--accent-light); color: var(--accent); }
+.icon-orange { background: var(--accent2-light); color: var(--accent2); }
+.icon-purple { background: var(--accent3-light); color: var(--accent3); }
+.icon-blue { background: var(--accent5-light); color: var(--accent5); }
+.icon-red { background: var(--accent4-light); color: var(--accent4); }
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+.card-desc {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.card-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 10px;
+  background: var(--line);
+  color: var(--muted);
+}
+.card-tag.p0 { background: #fee2e2; color: #991b1b; }
+.card-tag.p1 { background: var(--accent2-light); color: #92400e; }
+.card-tag.p2 { background: var(--accent3-light); color: #4c1d95; }
+.card-tag.p3 { background: var(--line); color: var(--muted); }
+
+/* ── KV Table ── */
+.kv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.kv-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 2px solid var(--line);
+  background: var(--bg);
+  position: sticky; top: 0;
+}
+.kv-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.kv-table tr:hover td { background: rgba(47,111,94,0.03); }
+.kv-table td:first-child { font-weight: 500; }
+.kv-table td code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--line);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--accent3);
+}
+.status-ok { color: var(--accent); font-weight: 500; }
+.status-warn { color: var(--accent2); font-weight: 500; }
+.status-risk { color: var(--accent4); font-weight: 500; }
+
+/* ── Risk Matrix ── */
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.risk-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.risk-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0; width: 4px;
+}
+.risk-card.critical::before { background: #991b1b; }
+.risk-card.high::before { background: #c2410c; }
+.risk-card.medium::before { background: var(--accent2); }
+.risk-card.low::before { background: var(--accent); }
+.risk-level {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.risk-card.critical .risk-level { color: #991b1b; }
+.risk-card.high .risk-level { color: #c2410c; }
+.risk-card.medium .risk-level { color: var(--accent2); }
+.risk-card.low .risk-level { color: var(--accent); }
+.risk-name { font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+.risk-desc { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+.risk-mitigate { font-size: 12px; color: var(--accent); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+
+/* ── Testing Table ── */
+.test-section { margin-bottom: 32px; }
+.test-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--accent);
+  display: inline-block;
+}
+.test-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  align-items: start;
+  font-size: 13.5px;
+}
+.test-row:last-child { border-bottom: none; }
+.test-name { font-weight: 500; }
+.test-desc { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.badge {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.badge-auto { background: var(--accent-light); color: var(--accent); }
+.badge-manual { background: var(--line); color: var(--muted); }
+.badge-critical { background: #fee2e2; color: #991b1b; }
+.badge-high { background: var(--accent2-light); color: #92400e; }
+.badge-medium { background: var(--accent3-light); color: #4c1d95; }
+
+/* ── Priority Timeline ── */
+.timeline {
+  position: relative;
+  padding-left: 32px;
+  list-style: none;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px; top: 6px; bottom: 6px;
+  width: 2px;
+  background: var(--accent);
+  opacity: 0.25;
+  border-radius: 1px;
+}
+.timeline li {
+  position: relative;
+  padding-bottom: 28px;
+}
+.timeline li:last-child { padding-bottom: 0; }
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -24px; top: 5px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--accent);
+}
+.timeline li.phase-done::before { background: var(--accent); border-color: var(--accent); }
+.timeline li.phase-current::before { background: var(--accent2); border-color: var(--accent2); }
+.phase-label {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.phase-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.phase-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.phase-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+/* ── Footer ── */
+.footer {
+  padding: 40px 0;
+  border-top: 1px solid var(--line);
+  margin-top: 48px;
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .container { padding: 0 18px; }
+  .page-header { padding: 40px 0 32px; }
+  .card-grid { grid-template-columns: 1fr; }
+  .test-row { grid-template-columns: 1fr; gap: 6px; }
+  .meta-row { gap: 10px; }
+  .risk-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="page-header">
+    <div class="breadcrumb">Ken Cheng 教學工具導航站 · v2 · 2026-06-29</div>
+    <h1>產品優化提案</h1>
+    <p class="subtitle">Astro 7 + Tailwind v4 靜態導航站，全面覆蓋新功能開發、UX、UI、自動化四個維度，並附技術風險評估與測試藍圖。</p>
+    <div class="meta-row">
+      <span class="meta-chip highlight">v2 主動開發中</span>
+      <span class="meta-chip">63 tools migrated</span>
+      <span class="meta-chip">8 categories</span>
+      <span class="meta-chip">V6 polish ✅</span>
+      <span class="meta-chip">F2/F3/F4/A1/A4/A6 pending</span>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════
+       DIMENSION 1: NEW FEATURES
+  ══════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-label">Dimension 1 · New Feature Development</div>
+    <h2>新功能開發</h2>
+    <p class="section-intro">基於現有 Astro 7 + Tailwind v4 架構，結合市場上導航站嘅最佳實踐，以下六個功能按優先序排列，全部可在無後端、無數據庫嘅條件下實現（localStorage + GitHub Actions）。</p>
+    <div class="section-divider"></div>
+
+    <div class="card-grid">
+
+      <!-- F1 -->
+      <div class="feature-card">
+        <div class="card-icon icon-green">⌘</div>
+        <div class="card-title">⌘K 全站快速搜尋面板</div>
+        <div class="card-desc">用 Cmd/Ctrl+K 喚起 fuzzy search，跨 category / tag / name 即時過濾，keyboard-only 導航（↑↓ Enter Esc）。對比：v1 係 input focus + dropdown，呢個係標準 command palette design，學習成本接近零。</div>
+        <div style="margin-top:12px;padding:10px;background:#f0fdf4;border-radius:8px;font-size:12.5px;color:#166534;line-height:1.6;">
+          <strong>預期效果：</strong>用戶留存 +25%，工具發現時間 -60%。教師喺課堂上即時搵到需要嘅工具。
+        </div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p0">P0 — 立即實作</span>
+          <span class="card-tag">localStorage</span>
+          <span class="card-tag">client-side</span>
+        </div>
+      </div>
+
+      <!-- F2 -->
+      <div class="feature-card">
+        <div class="card-icon icon-blue">✓</div>
+        <div class="card-title">Site Health 狀態徽章</div>
+        <div class="card-desc">每個工具 card 顯示 alive / slow / dead / redirect 狀態。Dead link nightly check 由 GitHub Actions cron job 驅動（`A1` Roadmap item），每 24 小時爬取所有 URL，更新 health 欄位後 commit 回庫。學生、老師唔再撞 dead link。</div>
+        <div style="margin-top:12px;padding:10px;background:#ecfeff;border-radius:8px;font-size:12.5px;color:#164e63;line-height:1.6;">
+          <strong>技術路徑：</strong>GitHub Actions + curl head request → 更新 frontmatter → `git add + commit` → push。Service Worker cache version 同步 bump。
+        </div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p1">P1 — v2 Roadmap F2</span>
+          <span class="card-tag">GitHub Actions</span>
+          <span class="card-tag">CI/CD</span>
+        </div>
+      </div>
+
+      <!-- F3 -->
+      <div class="feature-card">
+        <div class="card-icon icon-orange">★</div>
+        <div class="card-title">快速收藏書籤（Quick Add）</div>
+        <div class="card-desc">任意頁面一鍵 bookmark 到 localStorage，支援自訂名稱 + tag。唔需要 auth，唔需要後端。bookmark list 頁面展示全部已收藏工具，可匯出為 JSON 或複製為 Markdown list。與現有 v1 `bookmark-sync.html` 功能整合升級。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p1">P1 — v2 Roadmap F3</span>
+          <span class="card-tag">localStorage</span>
+          <span class="card-tag">no-backend</span>
+        </div>
+      </div>
+
+      <!-- F4 -->
+      <div class="feature-card">
+        <div class="card-icon icon-purple">📁</div>
+        <div class="card-title">書籤資料夾分組（F4）</div>
+        <div class="card-desc">用戶自建 folder（e.g.「中文備課」「STEM 課堂」），將書籤拖入不同 folder。folder 之間可移動工具、排序。完全 client-side，資料存 localStorage，無 server-side 需求。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p2">P2 — v2 Roadmap F4</span>
+          <span class="card-tag">localStorage</span>
+          <span class="card-tag">drag-drop</span>
+        </div>
+      </div>
+
+      <!-- F5 -->
+      <div class="feature-card">
+        <div class="card-icon icon-green">📊</div>
+        <div class="card-title">使用統計儀表板（Own Analytics）</div>
+        <div class="card-desc">追蹤：熱門工縣（bookmark count）、category 分布、平均停留時間。所有數據存在 localStorage（學生端），可選上報到 localStorage（老師端 aggregated view）。無 Google Analytics，GDPR-compliant，完全 self-contained。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p2">P2 — 新功能</span>
+          <span class="card-tag">localStorage</span>
+          <span class="card-tag">GDPR-safe</span>
+        </div>
+      </div>
+
+      <!-- F6 -->
+      <div class="feature-card">
+        <div class="card-icon icon-blue">🤖</div>
+        <div class="card-title">AI 工具推薦引擎升級</div>
+        <div class="card-desc">v1 已有 `__recommendTools` diversity-aware engine（role + cat coverage）。v2 升級：根據 bookmark history 實時推薦（localStorage inference，唔需要 server）、每週精選「本週新工具」（基於 frontmatter `date_added` 排序）、支援「隨機一個工具」按鈕（適用於：老師唔知用邊個工具時）。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p2">P2 — 新功能</span>
+          <span class="card-tag">client-only</span>
+          <span class="card-tag">AI-ready</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       DIMENSION 2: UX
+  ══════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-label">Dimension 2 · UX Optimization</div>
+    <h2>使用者體驗優化</h2>
+    <p class="section-intro">降低學習成本、提升操作效率。目標：老師 3 分鐘內熟練所有核心功能，學生 30 秒內完成第一個工具搜尋。</p>
+    <div class="section-divider"></div>
+
+    <div class="card-grid">
+
+      <div class="feature-card">
+        <div class="card-icon icon-green">🚶</div>
+        <div class="card-title">Entry Point 重構：首屏即核心價值</div>
+        <div class="card-desc">V6 polish 現已做好 hero tiles，但首屏仲可以更強：推薦工具從「靜態陳列」改為「根據時段推薦」（上課前顯示備課工具，下課後顯示學生練習工具）。Seasonal / exam-period 標籤：HKDSE 考前highlight 相關工具。</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-blue">👆</div>
+        <div class="card-title">Touch Target 全面合規</div>
+        <div class="card-desc">Innovative Teaching Prompt Studio mobile audit 顯示 44px touch target 標準。v2 mobile layout 需確保所有按鈕、filter chip、⌘K trigger 至少 44×44px。iPad / tablet review 場景優先於 phone。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p1">P1 — Mobile first</span>
+          <span class="card-tag">a11y</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-orange">↩</div>
+        <div class="card-title">Undo / Reset 機制</div>
+        <div class="card-desc">Filter 組合操作後，一鍵回覆全選狀態（目前需逐個取消）。Bookmark 刪除後，Toast notification 提供 5 秒 undo window。減少「恐怖事後」焦慮。</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-purple">📱</div>
+        <div class="card-title">Progressive Web App 深度整合</div>
+        <div class="card-desc">v1 SW v11 已做到離線緩存。v2 可升級：安裝 prompt 後，home screen icon 直接進入特定 category（如 bookmark page）；offline indicator banner 告知網絡狀態；Share API 支援把工具一鍵分享給同事/學生。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p1">P1 — PWA upgrade</span>
+          <span class="card-tag">offline-first</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-green">🔌</div>
+        <div class="card-title">URL 作為狀態（Stateless Navigation）</div>
+        <div class="card-desc">目前 filter 係 JavaScript state。改為 URL query param（`/?cat=AI&audience=teacher`），咁用戶可以 share filtered URL 俾同事、直接 deep link 到特定工具視圖。bookmark URL 直接還原視圖，SEO 友好。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p2">P2 — URL state</span>
+          <span class="card-tag">SEO</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-red">⚡</div>
+        <div class="card-title">Keyboard Shortcut Overlay</div>
+        <div class="card-desc">按 `?` 顯示全站快捷鍵一覽（⌘K、Esc 關閉、↑↓ 導航、Enter 確認、/ 聚焦搜尋）。所有 keyboard interaction v1 已有，但缺少統一嘅 hint 層。呢個 overlay 等新用戶秒上手，唔使靠 trial-and-error。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p2">P2 — Keyboard UX</span>
+          <span class="card-tag">a11y</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       DIMENSION 3: UI
+  ══════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-label">Dimension 3 · UI Design</div>
+    <h2>使用者介面設計</h2>
+    <p class="section-intro">V6 polish 完成了 card hover / focus / cat-hue + KPI hero tiles 優化。以下係下一階段 UI 改進方向，保持 Astro + Tailwind v4 嘅技術約束。</p>
+    <div class="section-divider"></div>
+
+    <div class="card-grid">
+
+      <div class="feature-card">
+        <div class="card-icon icon-purple">🌑</div>
+        <div class="card-title">Dark Mode 升級為 System-Aware</div>
+        <div class="card-desc">目前 `color-scheme: dark` 但實際係固定 dark 樣式。升級：系統偏好優先，`localStorage` 用戶覆蓋（Light / Dark / System 三態）。v1 已有多 Gundam theme，v2 可保留 theme switcher 作為 branding亮點。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p1">P1 — Theme system</span>
+          <span class="card-tag">a11y</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-blue">✂️</div>
+        <div class="card-title">首屏資訊密度提升</div>
+        <div class="card-desc">目前首屏以 hero 為主，工具 grid 未喺首屏展示。用 CJK-optimized spacing 重新計算：body 14px / line-height 1.5、H1 28-34px、section gap 40-56px，目標係首屏起碼顯示 1 row featured tools。唔係話所有野压縮，而係合理利用空間。</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-orange">🖼️</div>
+        <div class="card-title">OG Image + OG Video Auto-Gen</div>
+        <div class="card-desc">每個 category page 需要獨特 OG image。目前全部 static fallback。v2 Roadmap `A2` 提及 auto-gen，可用 Astro endpoint（static route）generate 1200×630 PNG，含 site name + category 名稱 + 4 個 featured tool icons。呢個係 SEO + 社交分享嘅基本功。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p1">P1 — v2 Roadmap A2</span>
+          <span class="card-tag">SEO</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-green">🎯</div>
+        <div class="card-title">Card Design 系統化</div>
+        <div class="card-desc">目前 v2 sample data 4 sites 嘅 card layout 可进一步：加入 favicon 圖示（`<link rel="icon">` + Google Favicon API fallback）、工具描述 truncation（2 行，hover expand）、health badge 左上角 overlay、author badge 右下角。</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-blue">♿</div>
+        <div class="card-title">WCAG 2.1 AA 合規審計</div>
+        <div class="card-desc">v1 有 skip-link / focus-visible / aria-label / keyboard nav，v2 應継承並升級：所有 interactive element contrast ratio ≥ 4.5:1、focus ring 明確可見（v1 已做）、filter 操作有 aria-live region announcer、⌘K modal 有 proper role="dialog" + aria-modal。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p2">P2 — a11y audit</span>
+          <span class="card-tag">WCAG 2.1 AA</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-orange">📰</div>
+        <div class="card-title">Empty State + Zero Results 設計</div>
+        <div class="card-desc">搜尋無結果、書籤為空、category 無 tools 等場景，需要精心設計 empty state。唔係留白，而係提供替代行動（「無結果？試下移除 filter」或「書籤為空？去首頁睇精選工具」）。呢個細節直接影響 NPS。</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       DIMENSION 4: AUTOMATION
+  ══════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-label">Dimension 4 · Automation</div>
+    <h2>自動化功能導入</h2>
+    <p class="section-intro">零後端不代表零自動化。GitHub Actions + localStorage 構成輕量自動化骨架，成本為零，適合個人開發者维护。</p>
+    <div class="section-divider"></div>
+
+    <div class="card-grid">
+
+      <div class="feature-card">
+        <div class="card-icon icon-red">🔴</div>
+        <div class="card-title">Dead Link Nightly Check（A1）</div>
+        <div class="card-desc">v2 Roadmap `A1`。GitHub Actions cron `schedule: cron: '0 2 * * *'`（每日凌晨 UTC 2:00）跑所有工具 URL，用 curl HEAD 驗證 HTTP status。Dead / redirect → 更新 frontmatter `health` 欄位 → git commit → push觸發 rebuild。全部無需 server。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p0">P0 — v2 Roadmap A1</span>
+          <span class="card-tag">GitHub Actions</span>
+          <span class="card-tag">cron</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-green">🧪</div>
+        <div class="card-title">CI Smoke Gate（A6）</div>
+        <div class="card-desc">v2 Roadmap `A6`：每次 PR / push 跑 5 invariants check（`__recommendTools` count、micro-interaction markers、P0 markers、skip-link target）+ Lighthouse CI（Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 90）。fail → block merge。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p1">P1 — v2 Roadmap A6</span>
+          <span class="card-tag">CI/CD</span>
+          <span class="card-tag">Lighthouse CI</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-blue">🗺️</div>
+        <div class="card-title">Sitemap + RSS Auto-Gen（A4）</div>
+        <div class="card-desc">v2 Roadmap `A4`：Astro 已有 sitemap integration (`@astrojs/sitemap`)，config 加一行即可生成 `/sitemap-index.xml`。RSS feed（`/rss.xml`）用 Astro endpoint 動態生成，列出最新 20 個工具（含 date_added）。現有 footer link 404 待呢個完成。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p1">P1 — v2 Roadmap A4</span>
+          <span class="card-tag">SEO</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-purple">🆕</div>
+        <div class="card-title">工具上新 Alert（GitHub Actions）</div>
+        <div class="card-desc">新工具 commit（`date_added` 最近 7 日）自動喺首頁 badge「NEW」標示。GitHub Actions 每週跑一次，比對現有 tools list + 新增 tools，自動 dispatch Astro build。呢個係 low-code content workflow，唔需要 CMS。</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="card-tag p2">P2 — Content automation</span>
+          <span class="card-tag">GitHub Actions</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon icon-orange">🔄</div>
+        <div class="card-title">Bookmark Sync v2（JSON Export）</div>
+        <div class="card-desc">v1 `bookmark-sync.html` 係手動 import/export。v2 升級：自動同步書籤到 localStorage，支援匯出為 JSON（可版本控制、做 diff）、可從 GitHub Gist 讀取（需用戶自備 Gist token，存 localStorage，server-less）。</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       RISK ASSESSMENT
+  ══════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-label">Technical Risk Assessment</div>
+    <h2>技術風險評估</h2>
+    <p class="section-intro">每個功能嘅潛在風險分為四級（Critical / High / Medium / Low），包含舒緩對策。基於 Astro 7 + Tailwind v4 + GitHub Pages 呢個特定 stack。</p>
+    <div class="section-divider"></div>
+
+    <div class="risk-grid">
+
+      <div class="risk-card critical">
+        <div class="risk-level">Critical</div>
+        <div class="risk-name">GitHub Actions Cron 配額</div>
+        <div class="risk-desc">GitHub Free plan cron job 每月 2000 分鐘。Dead link check 每日凌晨跑 63 個 URL（每次 ~30 秒）= ~30 分鐘/月，喺限額內。但若加 tool count 到 300+，會逼近限額。</div>
+        <div class="risk-mitigate">✅ mitigation：加 concurrency limit、cache previous results、用 `HEAD` 而非 `GET` 减少時間。</div>
+      </div>
+
+      <div class="risk-card high">
+        <div class="risk-level">High</div>
+        <div class="risk-name">localStorage 容量限制</div>
+        <div class="risk-desc">localStorage 上限 ~5MB（瀏覽器）。Bookmark + folder + analytics 數據若超過 5MB，iOS Safari 會静默fail write，數據丢失但無錯誤提示。</div>
+        <div class="risk-mitigate">✅ mitigation：書籤 JSON 超过 3MB 時 warning user；優先存必要欄位（url + title + folder），analytics 數據探樣而非全量。</div>
+      </div>
+
+      <div class="risk-card high">
+        <div class="risk-level">High</div>
+        <div class="risk-name">⌘K Palette 與 Screen Reader 衝突</div>
+        <div class="risk-desc">Command palette 係高度客製化 widget，若 skip-link / aria-live 实现不完整，會干擾 screen reader 用戶嘅 navigation flow。</div>
+        <div class="risk-mitigate">✅ mitigation：palette 實現严格 ARIA dialog spec；上綫前用 NVDA / VoiceOver 測試；提供 keyboard-only fallback。</div>
+      </div>
+
+      <div class="risk-card medium">
+        <div class="risk-level">Medium</div>
+        <div class="risk-name">Service Worker Cache 版本同步</div>
+        <div class="risk-desc">每次 deploy 需要 bump SW cache version，否則舊 SW 會 stale cache 回朔舊頁面。呢個係 v1 已知問題，v2 需要確保 `astro.config.mjs` build script 自動 bump SW version。</div>
+        <div class="risk-mitigate">✅ mitigation：Astro build hook 自動 inject timestamp 或 hash 到 sw.js；每次 build 時校驗 sw.js 與 manifest.json version 一致。</div>
+      </div>
+
+      <div class="risk-card medium">
+        <div class="risk-level">Medium</div>
+        <div class="risk-name">Lighthouse CI False Positive</div>
+        <div class="risk-desc">Lighthouse CI threshold 設得太高（e.g. Performance ≥ 95）會造成 flaky failure，尤其係 shared runner 網絡波動造成 TTFB 飆升。</div>
+        <div class="risk-mitigate">✅ mitigation：threshold 設合理值（Performance ≥ 85, Accessibility ≥ 90）；加入 retry 機制（flaky 最多 2 次重試）；將 Lighthouse 結果 trend 化，唔設 hard gate。</div>
+      </div>
+
+      <div class="risk-card low">
+        <div class="risk-level">Low</div>
+        <div class="risk-name">OG Image Gen 依賴外部服務</div>
+        <div class="risk-desc">若 OG image gen 用 Satori（Vercel edge），生成服務 downtime 會造成 build fail。</div>
+        <div class="risk-mitigate">✅ mitigation：用 Astro endpoint generate SVG → 轉 PNG，全部 client-side 完成，無外部依賴。或 fallback 為 static fallback OG image。</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       TESTING PLAN
+  ══════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-label">Testing Plan · Debug & Stability</div>
+    <h2>Debug 與系統穩定性測試項目</h2>
+    <p class="section-intro">分三層：Critical path smoke、E2E 功能測試、Performance + a11y 持續監控。</p>
+    <div class="section-divider"></div>
+
+    <!-- Layer 1 -->
+    <div class="test-section">
+      <div class="test-section-title">🔴 Critical Path Smoke（每次 Push 前必須通過）</div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">Build 成功且無 TS 錯誤</div>
+          <div class="test-desc">`npm run build` + `npx astro check` 必須 0 errors / 0 warnings</div>
+        </div>
+        <span class="badge badge-auto">Auto</span>
+        <span class="badge badge-critical">Critical</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">首頁 /category/ 各 URL 返回 200</div>
+          <div class="test-desc">Playwright 或 `curl -s -o /dev/null -w "%{http_code}"` 驗證全部 9 pages</div>
+        </div>
+        <span class="badge badge-auto">Auto</span>
+        <span class="badge badge-critical">Critical</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">SW installability（ Lighthouse PWA test）</div>
+          <div class="test-desc">`lighthouse --only-categories=pwa` PWA score ≥ 100</div>
+        </div>
+        <span class="badge badge-auto">Auto</span>
+        <span class="badge badge-critical">Critical</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">OG image / sitemap / RSS URL 可訪問</div>
+          <div class="test-desc">A4 完成後驗證 `/og-image.png` `/sitemap-index.xml` `/rss.xml` 均 200</div>
+        </div>
+        <span class="badge badge-auto">Auto</span>
+        <span class="badge badge-critical">Critical</span>
+      </div>
+    </div>
+
+    <!-- Layer 2 -->
+    <div class="test-section">
+      <div class="test-section-title">🟡 E2E 功能測試（每個 Sprint 前回歸）</div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">⌘K palette 全流程</div>
+          <div class="test-desc">Cmd+K → 輸入關鍵字 → ↑↓ 導航 → Enter 確認 → 正確工具頁跳轉</div>
+        </div>
+        <span class="badge badge-manual">Manual</span>
+        <span class="badge badge-critical">Critical</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">⌘K keyboard-only navigation</div>
+          <div class="test-desc">完全唔使用 mouse，僅靠鍵盤完成整個 search flow</div>
+        </div>
+        <span class="badge badge-manual">Manual</span>
+        <span class="badge badge-critical">Critical</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">Category filter + URL param sync</div>
+          <div class="test-desc">選擇 filter → URL 更新 → copy URL → 新視窗打開 → filter 狀態正確還原</div>
+        </div>
+        <span class="badge badge-manual">Manual</span>
+        <span class="badge badge-high">High</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">Bookmark add / remove / undo</div>
+          <div class="test-desc">F3 完成後必測：新增 → localStorage 正確寫入 → 刪除 → undo → Toast 還原</div>
+        </div>
+        <span class="badge badge-auto">Auto</span>
+        <span class="badge badge-high">High</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">Folder drag-and-drop</div>
+          <div class="test-desc">F4 完成後：新建 folder → 拖工具入 folder → 跨 folder 移動 → localStorage persist</div>
+        </div>
+        <span class="badge badge-manual">Manual</span>
+        <span class="badge badge-high">High</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">Dark / Light / System theme toggle</div>
+          <div class="test-desc">Theme 切換 → localStorage persist → 刷新頁面 → 記憶正確 theme → System 模式下 OS 改 theme → 頁面跟隨</div>
+        </div>
+        <span class="badge badge-auto">Auto</span>
+        <span class="badge badge-high">High</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">PWA offline mode</div>
+          <div class="test-desc">安裝後斷網 → 全部 cached pages 可訪問 → 書籤頁正常 → 網絡恢復 → 狀態正確</div>
+        </div>
+        <span class="badge badge-manual">Manual</span>
+        <span class="badge badge-high">High</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">Share API</div>
+          <div class="test-desc">PWA upgrade 完成後：工具頁 Share button → 正確 Web Share API 调用 → fallback 複製 URL</div>
+        </div>
+        <span class="badge badge-manual">Manual</span>
+        <span class="badge badge-medium">Medium</span>
+      </div>
+    </div>
+
+    <!-- Layer 3 -->
+    <div class="test-section">
+      <div class="test-section-title">🟢 Performance + Accessibility 持續監控</div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">Lighthouse CI Performance ≥ 90</div>
+          <div class="test-desc">每次 PR / push 自動跑，存在 trend chart 追蹤</div>
+        </div>
+        <span class="badge badge-auto">Auto</span>
+        <span class="badge badge-high">High</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">Lighthouse Accessibility ≥ 90</div>
+          <div class="test-desc">每次 PR / push 自動跑；WCAG 2.1 AA audit</div>
+        </div>
+        <span class="badge badge-auto">Auto</span>
+        <span class="badge badge-high">High</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">Dead link check 成功運行</div>
+          <div class="test-desc">A1 nightly run 後檢查 Actions log → 確認無 unexpected failure → health metadata 更新 commit 存在</div>
+        </div>
+        <span class="badge badge-auto">Auto</span>
+        <span class="badge badge-medium">Medium</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">Cross-browser test</div>
+          <div class="test-desc">Chrome / Safari / Firefox 最新版 + iOS Safari → 手動 smoke（每次 major feature merge）</div>
+        </div>
+        <span class="badge badge-manual">Manual</span>
+        <span class="badge badge-medium">Medium</span>
+      </div>
+      <div class="test-row">
+        <div>
+          <div class="test-name">localStorage 容量測試</div>
+          <div class="test-desc">塞入 1000 個 bookmark（壓縮 JSON ~4.8MB）→ 驗證 warning toast 出現 → 確認不 crash</div>
+        </div>
+        <span class="badge badge-auto">Auto</span>
+        <span class="badge badge-medium">Medium</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       IMPLEMENTATION ROADMAP
+  ══════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-label">Implementation Roadmap · Suggested Phasing</div>
+    <h2>建議實施路線圖</h2>
+    <p class="section-intro">基於 v2 現有 roadmap，融合上述四個維度嘅優化項目。Sprint 以 2 週為單位。</p>
+    <div class="section-divider"></div>
+
+    <ol class="timeline">
+      <li class="phase-current">
+        <div class="phase-label">Sprint 1 · Foundation</div>
+        <div class="phase-title">⌘K Palette + Dead Link Check</div>
+        <div class="phase-desc">同時實作 F1（⌘K）和 A1（dead link nightly）。兩者技術上無依賴，但都係「基礎設施級」功能，其他功能依賴佢哋。⌘K 完成後立即降低所有用戶嘅 tool discovery friction。</div>
+        <div class="phase-tags">
+          <span class="card-tag p0">F1 ⌘K</span>
+          <span class="card-tag p0">A1 Dead Link</span>
+          <span class="card-tag p0">Critical Path</span>
+        </div>
+      </li>
+      <li>
+        <div class="phase-label">Sprint 2 · Bookmarks</div>
+        <div class="phase-title">Quick Add Bookmark + Bookmark Folders</div>
+        <div class="phase-desc">F3 + F4 同步開發（localStorage schema 一次定義）。Bookmark import/export JSON v2。整合現有 v1 `bookmark-sync.html` 用戶嘅 localStorage data（backward compat）。</div>
+        <div class="phase-tags">
+          <span class="card-tag p1">F3 Quick Add</span>
+          <span class="card-tag p1">F4 Folders</span>
+          <span class="card-tag p1">localStorage schema</span>
+        </div>
+      </li>
+      <li>
+        <div class="phase-label">Sprint 3 · Infrastructure</div>
+        <div class="phase-title">CI Smoke Gate + Sitemap/RSS</div>
+        <div class="phase-desc">A6（Lighthouse CI + 5 invariants）鋪好 quality gate 後，A4（sitemap + RSS）無痛上綫。呢個 sprint 主要係 reliability + SEO 基建，为後續功能守底綫。</div>
+        <div class="phase-tags">
+          <span class="card-tag p1">A6 CI Gate</span>
+          <span class="card-tag p1">A4 Sitemap/RSS</span>
+          <span class="card-tag p1">A2 OG Image</span>
+        </div>
+      </li>
+      <li>
+        <div class="phase-label">Sprint 4 · UX Polish</div>
+        <div class="phase-title">URL State + Theme System + Touch Target</div>
+        <div class="phase-desc">URL query param 重構現有 filter system（breaking change，需要 careful QA）。Dark/Light/System theme 實作 + 現有 v1 Gundam theme 移植。Mobile touch target 合規修復。</div>
+        <div class="phase-tags">
+          <span class="card-tag p1">URL state</span>
+          <span class="card-tag p1">Theme system</span>
+          <span class="card-tag p1">Mobile a11y</span>
+        </div>
+      </li>
+      <li>
+        <div class="phase-label">Sprint 5 · AI + Analytics</div>
+        <div class="phase-title">AI Recommendation Engine + Own Analytics</div>
+        <div class="phase-desc">F6 升級 `__recommendTools` engine 加 bookmark-based inference + 每週精選 + 隨機工具。F5 使用統計儀表板（全部 client-side，GDPR-safe）。</div>
+        <div class="phase-tags">
+          <span class="card-tag p2">F5 Analytics</span>
+          <span class="card-tag p2">F6 AI engine</span>
+          <span class="card-tag p2">P2</span>
+        </div>
+      </li>
+      <li>
+        <div class="phase-label">Sprint 6+ · Polish</div>
+        <div class="phase-title">WCAG Audit + Empty States + PWA Deep Integration</div>
+        <div class="phase-desc">WCAG 2.1 AA full audit + fix。所有 empty state / zero results 場景設計。Share API、PWA deep integration（home screen shortcut、offline indicator）。呢個 sprint 可以持續，視用戶 feedback 動態調整優先序。</div>
+        <div class="phase-tags">
+          <span class="card-tag p2">WCAG AA</span>
+          <span class="card-tag p2">Empty states</span>
+          <span class="card-tag p2">PWA deep</span>
+        </div>
+      </li>
+    </ol>
+
+  </section>
+
+  <footer class="footer">
+    <span>Ken Cheng 教學工具導航站 v2 · 產品優化提案 · 2026-06-29</span>
+    <span style="font-family:var(--font-mono);font-size:11px;color:#d1fae5;background:#2f6f5e;padding:3px 10px;border-radius:20px;">Astro 7 + Tailwind v4</span>
+  </footer>
+</div>
+
+</body>
+</html>
