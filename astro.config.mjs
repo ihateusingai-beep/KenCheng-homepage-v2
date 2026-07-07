@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
+import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,5 +15,11 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  integrations: [],
+  integrations: [
+    sitemap({
+      // Site URL + base path — sitemap-index.xml at /sitemap-index.xml
+      // Individual sitemaps: /sitemap-0.xml (sites), etc.
+      filter: (page) => page.includes('/KenCheng-homepage-v2/'),
+    }),
+  ],
 });

@@ -1,0 +1,186 @@
+name: CI Smoke Tests
+
+# Run on every PR + every push to main.
+# BLOCKS merge if any test fails.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Type check
+        run: npx astro check
+
+      - name: Build
+        run: npm run build
+
+      - name: Run smoke tests
+        run: |
+          python3 << 'EOF'
+          import json, os, re, sys
+          from pathlib import Path
+
+          dist = Path('dist')
+          failures = []
+          warnings = []
+
+          # ── Test 1: RSS feed exists ────────────────────────────────
+          rss = dist / 'rss.xml'
+          if not rss.exists():
+              failures.append('FAIL: dist/rss.xml not found')
+          else:
+              content = rss.read_text(encoding='utf-8')
+              if '<rss' not in content:
+                  failures.append('FAIL: dist/rss.xml is not valid RSS XML')
+              if '<item>' not in content:
+                  failures.append('FAIL: dist/rss.xml has no <item> elements')
+              print(f'  ✓ RSS: {len(content)} bytes, {content.count("<item>")} items')
+
+          # ── Test 2: Sitemap index exists ─────────────────────────
+          sitemap_idx = dist / 'sitemap-index.xml'
+          if not sitemap_idx.exists():
+              failures.append('FAIL: dist/sitemap-index.xml not found')
+          else:
+              content = sitemap_idx.read_text(encoding='utf-8')
+              if '<sitemapindex' not in content:
+                  failures.append('FAIL: sitemap-index.xml is not a valid sitemap index')
+              # sitemap-0.xml should also exist (the child sitemap)
+              sitemap_child = dist / 'sitemap-0.xml'
+              if sitemap_child.exists():
+                  print(f'  ✓ Sitemap: sitemap-index.xml + sitemap-0.xml present')
+              else:
+                  failures.append('FAIL: dist/sitemap-0.xml not found')
+
+          # ── Test 3: manifest.json is valid JSON ──────────────────
+          manifest = dist / 'manifest.json'
+          if not manifest.exists():
+              failures.append('FAIL: dist/manifest.json not found')
+          else:
+              try:
+                  m = json.loads(manifest.read_text(encoding='utf-8'))
+                  required = ['name', 'start_url', 'display', 'icons']
+                  for field in required:
+                      if field not in m:
+                          failures.append(f'FAIL: manifest.json missing field: {field}')
+                  print(f'  ✓ manifest.json: {len(m.get("icons", []))} icons, display={m.get("display")}')
+              except json.JSONDecodeError as e:
+                  failures.append(f'FAIL: manifest.json is not valid JSON: {e}')
+
+          # ── Test 4: index.html has key elements ──────────────────
+          index = dist / 'index.html'
+          if not index.exists():
+              failures.append('FAIL: dist/index.html not found')
+          else:
+              content = index.read_text(encoding='utf-8')
+
+              # Skip-link (accessibility)
+              if 'href="#main"' not in content and 'href="#root"' not in content:
+                  failures.append('FAIL: index.html has no skip-link target (#main or #root)')
+              else:
+                  print(f'  ✓ Skip-link target present')
+
+              # Main landmark
+              if '<main' not in content:
+                  failures.append('FAIL: index.html has no <main> element')
+              else:
+                  print(f'  ✓ <main> landmark present')
+
+              # At least one card rendered
+              card_count = content.count('class="kc-card')
+              if card_count < 5:
+                  failures.append(f'FAIL: index.html has only {card_count} cards (expected ≥5)')
+              else:
+                  print(f'  ✓ {card_count} tool cards rendered')
+
+              # ⌘K palette markup
+              if 'kc-palette' not in content:
+                  failures.append('FAIL: ⌘K palette (kc-palette) not in index.html')
+              else:
+                  print(f'  ✓ ⌘K Command Palette markup present')
+
+              # Palette JS is loaded
+              if '_astro/' not in content and 'command-palette' not in content:
+                  failures.append('FAIL: command-palette script not referenced')
+              else:
+                  print(f'  ✓ Command palette script referenced')
+
+          # ── Test 5: All category pages built ───────────────────
+          cats = ['AI', '數學', '科學', '教學', '開發', '設計', '學習', '其他']
+          missing = []
+          for cat in cats:
+              cat_dir = dist / cat
+              if not cat_dir.exists():
+                  missing.append(cat)
+          if missing:
+              failures.append(f'FAIL: missing category pages: {missing}')
+          else:
+              print(f'  ✓ All 8 category pages built')
+
+          # ── Test 6: index.html size ≤ 150 KB ────────────────────
+          size_bytes = index.stat().st_size
+          size_kb = size_bytes / 1024
+          MAX_KB = 150
+          if size_kb > MAX_KB:
+              failures.append(f'FAIL: dist/index.html is {size_kb:.1f} KB (limit {MAX_KB} KB)')
+          else:
+              print(f'  ✓ index.html size: {size_kb:.1f} KB (limit {MAX_KB} KB)')
+
+          # ── Test 7: No inline </script> leak (XSS guard) ────────
+          if '</script>' in index.read_text(encoding='utf-8'):
+              # Check for properly escaped versions first
+              content2 = index.read_text(encoding='utf-8')
+              # Count unescaped </script> (not as </\/script> or <\/script>)
+              unescaped = re.findall(r'<(?!\/)(script)', content2)
+              # The literal </script> close tag in inline JS is the concern
+              # Count: look for </script> not preceded by backslash
+              matches = re.findall(r'(?<!\\)</script>', content2)
+              if matches:
+                  # Might be from actual script tag closes; check if they're in <script> blocks
+                  # Simple heuristic: if there's a literal </script> outside of the outer html
+                  # This is a warning, not a hard fail, since HTML may have real script tags
+                  warnings.append(f'WARN: literal </script> found {len(matches)} time(s) — verify not XSS risk')
+                  print(f'  ⚠ literal </script> found {len(matches)} time(s)')
+              else:
+                  print(f'  ✓ No literal </script> close tags')
+          else:
+              print(f'  ✓ No </script> close tags found')
+
+          # ── Summary ────────────────────────────────────────────────
+          print()
+          if failures:
+              print('SMOKE TEST FAILED')
+              for f in failures:
+                  print(f'  {f}')
+              sys.exit(1)
+          else:
+              print(f'SMOKE TEST PASSED ({len(warnings)} warnings)')
+              for w in warnings:
+                  print(f'  {w}')
+              sys.exit(0)
+
+          EOF
