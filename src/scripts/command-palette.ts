@@ -1,12 +1,24 @@
 /**
  * F1 — ⌘K command palette + fuzzy search.
+ * F3 — Bookmark quick-add (2026-07-08).
  *
  * Hand-rolled fuzzy matching (zero external deps), keyboard nav, tag filter,
  * ARIA combobox pattern, debounced search (80ms), respects prefers-reduced-motion.
+ * Bookmark mode: localStorage persistence, XSS-protected URL validation.
  *
  * Data source: `<script id="kc-sites-data" type="application/json">` injected
  * by index.astro at build time with the full sites list (slimmed to search fields).
  */
+
+import {
+  readAll as bmReadAll,
+  add as bmAdd,
+  remove as bmRemove,
+  exportJson as bmExport,
+  importJson as bmImport,
+  displayName as bmDisplayName,
+  type Bookmark,
+} from './bookmark-store';
 
 // ----- Types -----
 
@@ -202,10 +214,29 @@ class CommandPalette {
   private debounceTimer: number | null = null;
   private lastTriggerEl: HTMLElement | null = null;
 
+  // F3 — tab state
+  private currentTab: 'search' | 'bookmarks' = 'search';
+
   private root!: HTMLElement;
   private input!: HTMLInputElement;
   private tagsEl!: HTMLElement;
   private resultsEl!: HTMLElement;
+
+  // F3 — bookmark DOM refs
+  private tabSearch!: HTMLElement;
+  private tabBookmarks!: HTMLElement;
+  private panelSearch!: HTMLElement;
+  private panelBookmarks!: HTMLElement;
+  private bmUrlInput!: HTMLInputElement;
+  private bmTitleInput!: HTMLInputElement;
+  private bmCatSelect!: HTMLSelectElement;
+  private bmForm!: HTMLFormElement;
+  private bmAddMsg!: HTMLElement;
+  private bmList!: HTMLElement;
+  private bmCount!: HTMLElement;
+  private bmExportBtn!: HTMLButtonElement;
+  private bmImportBtn!: HTMLButtonElement;
+  private bmImportFile!: HTMLInputElement;
 
   constructor() {
     this.sites = loadSites();
@@ -225,9 +256,27 @@ class CommandPalette {
     this.tagsEl = tagsEl;
     this.resultsEl = resultsEl;
 
+    // F3 — resolve bookmark DOM refs
+    this.tabSearch = document.getElementById('kc-tab-search')!;
+    this.tabBookmarks = document.getElementById('kc-tab-bookmarks')!;
+    this.panelSearch = document.getElementById('kc-palette-search')!;
+    this.panelBookmarks = document.getElementById('kc-palette-bookmarks')!;
+    this.bmUrlInput = document.getElementById('kc-bm-url') as HTMLInputElement;
+    this.bmTitleInput = document.getElementById('kc-bm-title') as HTMLInputElement;
+    this.bmCatSelect = document.getElementById('kc-bm-cat') as HTMLSelectElement;
+    this.bmForm = document.getElementById('kc-bm-add-form') as HTMLFormElement;
+    this.bmAddMsg = document.getElementById('kc-bm-add-msg') as HTMLElement;
+    this.bmList = document.getElementById('kc-bm-list') as HTMLElement;
+    this.bmCount = document.getElementById('kc-bm-count') as HTMLElement;
+    this.bmExportBtn = document.getElementById('kc-bm-export') as HTMLButtonElement;
+    this.bmImportBtn = document.getElementById('kc-bm-import') as HTMLButtonElement;
+    this.bmImportFile = document.getElementById('kc-bm-import-file') as HTMLInputElement;
+
     this.renderTags();
     this.bindEvents();
+    this.bindBookmarkEvents(); // F3
     this.renderEmpty('輸入關鍵字開始搜尋…');
+    this.refreshBookmarkCount(); // F3
   }
 
   private bindEvents(): void {
@@ -275,6 +324,10 @@ class CommandPalette {
         this.openSelected();
       }
     });
+
+    // F3 — tab switching
+    this.tabSearch.addEventListener('click', () => this.switchTab('search'));
+    this.tabBookmarks.addEventListener('click', () => this.switchTab('bookmarks'));
   }
 
   private isInEditable(target: EventTarget | null): boolean {
@@ -297,7 +350,33 @@ class CommandPalette {
     this.selectedTags.clear();
     this.renderTags();
     this.runSearch();
-    setTimeout(() => this.input.focus(), 50);
+    setTimeout(() => {
+      if (this.currentTab === 'search') this.input.focus();
+    }, 50);
+  }
+
+  // ── F3: Tab switching ─────────────────────────────────────────
+
+  private switchTab(tab: 'search' | 'bookmarks'): void {
+    this.currentTab = tab;
+    if (tab === 'search') {
+      this.tabSearch.classList.add('kc-palette-tab-active');
+      this.tabBookmarks.classList.remove('kc-palette-tab-active');
+      this.tabSearch.setAttribute('aria-selected', 'true');
+      this.tabBookmarks.setAttribute('aria-selected', 'false');
+      this.panelSearch.style.display = '';
+      this.panelBookmarks.style.display = 'none';
+      this.input.focus();
+    } else {
+      this.tabBookmarks.classList.add('kc-palette-tab-active');
+      this.tabSearch.classList.remove('kc-palette-tab-active');
+      this.tabBookmarks.setAttribute('aria-selected', 'true');
+      this.tabSearch.setAttribute('aria-selected', 'false');
+      this.panelBookmarks.style.display = '';
+      this.panelSearch.style.display = 'none';
+      this.refreshBookmarkList();
+      this.refreshBookmarkCount();
+    }
   }
 
   private close(): void {
@@ -457,6 +536,178 @@ class CommandPalette {
     if (!sel) return;
     window.open(sel.site.url, '_blank', 'noopener,noreferrer');
     this.close();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // F3 — Bookmark quick-add
+  // ═══════════════════════════════════════════════════════════════════
+
+  private bindBookmarkEvents(): void {
+    // Form submit → add bookmark
+    this.bmForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.handleAddBookmark();
+    });
+
+    // Export
+    this.bmExportBtn.addEventListener('click', () => {
+      const json = bmExport();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kencheng-bookmarks-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      this.showBmMsg('success', `✅ 匯出 ${bmReadAll().length} 個書籤`);
+    });
+
+    // Import
+    this.bmImportBtn.addEventListener('click', () => {
+      this.bmImportFile.value = '';
+      this.bmImportFile.click();
+    });
+    this.bmImportFile.addEventListener('change', () => {
+      const file = this.bmImportFile.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const text = ev.target?.result as string;
+        const result = bmImport(text);
+        this.refreshBookmarkList();
+        this.refreshBookmarkCount();
+        if (result.added > 0) {
+          this.showBmMsg('success', `✅ 匯入 ${result.added} 個新書籤${result.skipped > 0 ? `，跳過 ${result.skipped} 個重複` : ''}`);
+        } else {
+          this.showBmMsg('error', '⚠️ 冇發現新書籤或檔案格式錯誤');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // URL input: auto-populate title placeholder with hostname hint
+    this.bmUrlInput.addEventListener('input', () => {
+      try {
+        const u = new URL(this.bmUrlInput.value);
+        this.bmTitleInput.placeholder = `標題 (可留空，自動取 ${u.hostname.replace(/^www\./, '')})`;
+      } catch {
+        this.bmTitleInput.placeholder = '標題 (可留空，自動取網址名)';
+      }
+    });
+  }
+
+  private handleAddBookmark(): void {
+    const url = this.bmUrlInput.value.trim();
+    if (!url) {
+      this.showBmMsg('error', '⚠️ 請填入網址');
+      return;
+    }
+    const title = this.bmTitleInput.value.trim();
+    const category = this.bmCatSelect.value;
+
+    const result = bmAdd(url, { title, category });
+    if (!result) {
+      this.showBmMsg('error', '⚠️ 網址無效或已存在 (只接受 http/https)');
+      return;
+    }
+
+    // Success — clear form + refresh list
+    this.bmUrlInput.value = '';
+    this.bmTitleInput.value = '';
+    this.bmCatSelect.selectedIndex = 0;
+    this.bmTitleInput.placeholder = '標題 (可留空，自動取網址名)';
+    this.refreshBookmarkList();
+    this.refreshBookmarkCount();
+    this.showBmMsg('success', `✅ 已加入「${bmDisplayName(result)}」`);
+  }
+
+  private refreshBookmarkCount(): void {
+    const count = bmReadAll().length;
+    if (count > 0) {
+      this.bmCount.textContent = String(count);
+      this.bmCount.style.display = '';
+    } else {
+      this.bmCount.style.display = 'none';
+    }
+  }
+
+  private refreshBookmarkList(): void {
+    const bookmarks = bmReadAll();
+    if (bookmarks.length === 0) {
+      this.bmList.innerHTML = `
+        <li class="kc-palette-empty">
+          <span class="kc-bm-empty-icon" aria-hidden="true">★</span>
+          暫時未有書籤
+        </li>`;
+      return;
+    }
+
+    this.bmList.innerHTML = bookmarks
+      .map((b) => this.renderBookmarkItem(b))
+      .join('');
+
+    // Bind click: open bookmark
+    this.bmList.querySelectorAll<HTMLElement>('.kc-bm-item').forEach((item) => {
+      item.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('.kc-bm-delete-btn')) return;
+        const url = item.dataset.url;
+        if (url) window.open(url, '_blank', 'noopener,noreferrer');
+        this.close();
+      });
+
+      // Bind delete
+      const delBtn = item.querySelector<HTMLButtonElement>('.kc-bm-delete-btn');
+      if (delBtn) {
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = delBtn.dataset.id;
+          if (id && bmRemove(id)) {
+            this.refreshBookmarkList();
+            this.refreshBookmarkCount();
+          }
+        });
+      }
+    });
+  }
+
+  private renderBookmarkItem(b: Bookmark): string {
+    const name = escapeHtml(bmDisplayName(b));
+    const host = (() => {
+      try { return escapeHtml(new URL(b.url).hostname.replace(/^www\./, '')); }
+      catch { return escapeHtml(b.url); }
+    })();
+    return `<li
+      class="kc-bm-item"
+      data-url="${escapeHtml(b.url)}"
+      tabindex="0"
+      role="option"
+      aria-label="書籤: ${name}"
+    >
+      <div class="kc-bm-item-main">
+        <span class="kc-bm-item-title">${name}</span>
+        <span class="kc-bm-item-url">${host}</span>
+      </div>
+      <div class="kc-bm-item-meta">
+        <span class="kc-bm-item-cat">${escapeHtml(b.category)}</span>
+        <button
+          class="kc-bm-delete-btn"
+          data-id="${escapeHtml(b.id)}"
+          aria-label="刪除書籤 ${name}"
+          title="刪除"
+          type="button"
+        >✕</button>
+      </div>
+    </li>`;
+  }
+
+  private showBmMsg(type: 'success' | 'error', text: string): void {
+    this.bmAddMsg.className = `kc-bm-add-msg kc-bm-msg-${type}`;
+    this.bmAddMsg.textContent = text;
+    this.bmAddMsg.style.display = 'block';
+    setTimeout(() => {
+      this.bmAddMsg.style.display = 'none';
+    }, 3500);
   }
 }
 

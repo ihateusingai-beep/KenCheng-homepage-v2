@@ -2,7 +2,7 @@
 
 > **Official project (2026-06-28)** — replaces [kencheng-homepage](https://github.com/ihateusingai-beep/kencheng-homepage)（soft deprecated，5 秒後自動跳轉到 v2 URL）
 >
-> **Status**: V6 polish pass shipped — F1 ⌘K palette + card hover/focus/cat-hue + KPI hero tiles。Sample data 4 sites (Anthropic / Figma / GitHub / Phind)。
+> **Status**: F3 bookmark quick-add shipped — ⌘K palette + bookmark tab, localStorage, XSS protection, export/import JSON。Sample data 4 sites (Anthropic / Figma / GitHub / Phind)。
 
 Ken Cheng 教學工具導航站 v2 — **Astro 7 + Tailwind v4** rewrite。Pure static output，GitHub Pages 托管。
 
@@ -25,8 +25,8 @@ npx astro check          # TS strict + content collection schema validate
 | 路徑 | 說明 |
 |------|------|
 | `/` | 主頁 — featured + 全部 site grid（cyber dark theme） |
-| `/rss.xml` | **待 A4 build** — footer link 暫時 404 |
-| `/sitemap-index.xml` | **待 A4 build** — footer link 暫時 404 |
+| `/rss.xml` | ✅ RSS feed（@astrojs/rss，63 tools） |
+| `/sitemap-index.xml` + `/sitemap-0.xml` | ✅ sitemap（@astrojs/sitemap） |
 | `/404` | Astro default 404（待 V6 polish 自訂） |
 
 **Stack 目標 vs actual**：
@@ -70,8 +70,8 @@ npx astro check          # TS strict + content collection schema validate
 
 **Pending（優先序）**：
 1. **F2** — Site health badge + A1 nightly check 嘅 health 資料源
-2. **F3** — Quick add bookmark（localStorage，無 auth）
-3. **F4** — F5 folders / ⭐ bookmark grouping
+2. ✅ **F3** — Quick add bookmark（localStorage，無 auth）— 2026-07-08 shipped
+3. **F4** — Folders / ⭐ bookmark grouping
 4. **A1** — Dead link nightly GitHub Action
 5. **A6** — CI smoke gate（5 invariants + Lighthouse ≥90）
 6. **A4** — sitemap + RSS + canonical + OG meta
@@ -105,7 +105,7 @@ npx astro check          # TS strict + content collection schema validate
 - **Astro 7 breaking change**：content config 必須喺 `src/content.config.ts`（top-level）而唔係 `src/content/config.ts`，每個 collection 必須 explicit `loader: glob(...)`。v6 嘅 `type: 'content'` shorthand 已廢除。
 - **Astro 7 需要 Node >=22.12.0**：CI workflow 用 `node-version: 22`（GitHub Actions 已棄用 Node 20）。本地開發可以用 22/24，唔好用 20。
 - **Zod v3→v4 deprecation hints**：`z.string().url()` / `z.string().min(1).max(100)` 等仲 work 但有 hint。建議 migrate 落 `z.url()` / `z.string().min(1).max(100)` 寫法。
-- **`/rss.xml` 同 `/sitemap-index.xml`** 而家 404。A4（sitemap + RSS）實作後補返。
+- **`/rss.xml` 同 `/sitemap-index.xml`** ✅ A4 shipped (2026-07-08)。
 - **GitHub Pages base path**：而家係 `/KenCheng-homepage-v2`，假設 v2 喺新 repo `KenCheng-homepage-v2`。若改放 v1 repo subdirectory `/v2/`，要改 `astro.config.mjs` 嘅 `base` field。
 - **Workflow 首次 push 失敗 → fix Node 22 → 重 push → 通咗**：見 commit log。
 
@@ -120,7 +120,7 @@ npx astro check          # TS strict + content collection schema validate
 - 純 static，無 backend、無 API key、無 secrets
 - 所有 OG / canonical / RSS path 由 Astro build time 生成，無 runtime injection
 - Frontmatter URL 由 Zod `z.string().url()` validate，唔合法直接 fail build
-- Quick-add (F3) 會 reject `javascript:` / `data:` URL（XSS 防）
+- Quick-add (F3) ✅ shipped (2026-07-08) — reject `javascript:` / `data:` URL（XSS 防）
 
 ## 待 user push 嘅決定
 

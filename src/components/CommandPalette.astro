@@ -3,7 +3,17 @@
  * CommandPalette — F1 ⌘K / `/` overlay.
  * Static HTML structure; behavior lives in src/scripts/command-palette.ts.
  * Toggled via body.kc-palette-open class (see global.css).
+ *
+ * F3 (2026-07-08): bookmark quick-add tab added.
+ * - Tab row: 搜尋 | 書籤
+ * - 搜尋 tab: existing search input + tags + results
+ * - 書籤 tab: quick-add form + saved bookmarks list
  */
+
+// F3 — available categories (must match schema enum)
+const BM_CATEGORIES = [
+  'AI', '數學', '科學', '教學', '開發', '設計', '學習', '其他',
+];
 ---
 
 <div
@@ -18,36 +28,138 @@
 
   <div class="kc-palette-panel" role="combobox" aria-expanded="true" aria-haspopup="listbox">
     <div class="kc-palette-handle" aria-hidden="true"></div>
-    <h2 id="kc-palette-title" class="sr-only">搜尋工具</h2>
 
-    <div class="kc-palette-input-wrap">
-      <span class="kc-palette-search-icon" aria-hidden="true">⌕</span>
-      <input
-        id="kc-palette-input"
-        type="text"
-        placeholder="搜尋 site、tag、category…"
-        autocomplete="off"
-        spellcheck="false"
-        class="kc-palette-input"
-        aria-controls="kc-palette-results"
-        aria-activedescendant=""
-      />
-      <kbd class="kc-palette-kbd">ESC</kbd>
+    <!-- ── F3: Tab row ──────────────────────────────────────────── -->
+    <div class="kc-palette-tabs" role="tablist" aria-label="模式切換">
+      <button
+        id="kc-tab-search"
+        class="kc-palette-tab kc-palette-tab-active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="kc-palette-search"
+        data-tab="search"
+      >
+        <span aria-hidden="true">⌕</span> 搜尋
+      </button>
+      <button
+        id="kc-tab-bookmarks"
+        class="kc-palette-tab"
+        role="tab"
+        aria-selected="false"
+        aria-controls="kc-palette-bookmarks"
+        data-tab="bookmarks"
+      >
+        <span aria-hidden="true">★</span> 書籤
+        <span id="kc-bm-count" class="kc-bm-count" style="display:none;">0</span>
+      </button>
     </div>
 
-    <div id="kc-palette-tags" class="kc-palette-tags" role="group" aria-label="Tag filter">
-      <!-- Tag pills injected at runtime by command-palette.ts -->
+    <!-- ── Search tab ───────────────────────────────────────────── -->
+    <div
+      id="kc-palette-search"
+      class="kc-palette-tab-panel"
+      role="tabpanel"
+      aria-labelledby="kc-tab-search"
+    >
+      <div class="kc-palette-input-wrap">
+        <span class="kc-palette-search-icon" aria-hidden="true">⌕</span>
+        <input
+          id="kc-palette-input"
+          type="text"
+          placeholder="搜尋 site、tag、category…"
+          autocomplete="off"
+          spellcheck="false"
+          class="kc-palette-input"
+          aria-controls="kc-palette-results"
+          aria-activedescendant=""
+        />
+        <kbd class="kc-palette-kbd">ESC</kbd>
+      </div>
+
+      <div id="kc-palette-tags" class="kc-palette-tags" role="group" aria-label="Tag filter">
+        <!-- Tag pills injected at runtime by command-palette.ts -->
+      </div>
+
+      <ul id="kc-palette-results" class="kc-palette-results" role="listbox" aria-label="搜尋結果">
+        <li class="kc-palette-empty">輸入關鍵字開始搜尋…</li>
+      </ul>
+
+      <div class="kc-palette-footer" aria-hidden="true">
+        <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+        <span><kbd>↵</kbd> open</span>
+        <span><kbd>esc</kbd> close</span>
+        <span class="kc-palette-hint">⌘K</span>
+      </div>
     </div>
 
-    <ul id="kc-palette-results" class="kc-palette-results" role="listbox" aria-label="搜尋結果">
-      <li class="kc-palette-empty">輸入關鍵字開始搜尋…</li>
-    </ul>
+    <!-- ── F3: Bookmarks tab ───────────────────────────────────── -->
+    <div
+      id="kc-palette-bookmarks"
+      class="kc-palette-tab-panel"
+      role="tabpanel"
+      aria-labelledby="kc-tab-bookmarks"
+      style="display:none;"
+    >
+      <!-- Quick-add form -->
+      <div class="kc-bm-add-section">
+        <p class="kc-bm-add-title">快速加入書籤</p>
+        <form id="kc-bm-add-form" class="kc-bm-add-form" novalidate>
+          <div class="kc-bm-form-row">
+            <input
+              id="kc-bm-url"
+              type="url"
+              name="url"
+              class="kc-bm-input"
+              placeholder="https://example.com"
+              autocomplete="off"
+              spellcheck="false"
+              required
+            />
+            <select id="kc-bm-cat" name="category" class="kc-bm-select">
+              {BM_CATEGORIES.map((cat) => (
+                <option value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+          <div class="kc-bm-form-row kc-bm-form-row--second">
+            <input
+              id="kc-bm-title"
+              type="text"
+              name="title"
+              class="kc-bm-input"
+              placeholder="標題 (可留空，自動取網址名)"
+              maxlength="100"
+              autocomplete="off"
+            />
+            <button type="submit" class="kc-bm-add-btn" aria-label="加入書籤">
+              <span aria-hidden="true">+</span> 加入
+            </button>
+          </div>
+          <p id="kc-bm-add-msg" class="kc-bm-add-msg" style="display:none;"></p>
+        </form>
+      </div>
 
-    <div class="kc-palette-footer" aria-hidden="true">
-      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
-      <span><kbd>↵</kbd> open</span>
-      <span><kbd>esc</kbd> close</span>
-      <span class="kc-palette-hint">⌘K</span>
+      <!-- Bookmarks list -->
+      <div class="kc-bm-list-header">
+        <span class="kc-bm-list-label">已儲存書籤</span>
+        <div class="kc-bm-list-actions">
+          <button id="kc-bm-export" class="kc-bm-action-btn" title="匯出 JSON" type="button">
+            <span aria-hidden="true">📤</span>
+          </button>
+          <button id="kc-bm-import" class="kc-bm-action-btn" title="匯入 JSON" type="button">
+            <span aria-hidden="true">📥</span>
+          </button>
+          <input id="kc-bm-import-file" type="file" accept=".json" style="display:none;" />
+        </div>
+      </div>
+      <ul id="kc-bm-list" class="kc-palette-results kc-bm-list" role="listbox" aria-label="已儲存書籤">
+        <li class="kc-palette-empty">暫時未有書籤</li>
+      </ul>
+
+      <div class="kc-palette-footer" aria-hidden="true">
+        <span><kbd>esc</kbd> close</span>
+        <span class="kc-palette-hint">⌘K</span>
+      </div>
     </div>
   </div>
 </div>
