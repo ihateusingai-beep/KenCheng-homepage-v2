@@ -47,6 +47,7 @@ jobs:
           python << 'EOF'
           import asyncio, json, os, re, shlex, subprocess, sys, time
           from pathlib import Path
+          import httpx
 
           # ── 1. Collect URLs from frontmatter ────────────────────────────────
           content_dir = Path('src/content/sites')
