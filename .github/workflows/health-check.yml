@@ -158,7 +158,11 @@ jobs:
               f.write(f'changed_count={changed_n}\n')
               f.write(f'total_count={len(results)}\n')
 
-          sys.exit(0 if dead_n == 0 else 1)  # exit 1 if any dead links found
+          # Always exit 0 — the dead_count is in the summary + GITHUB_OUTPUT.
+          # Exiting 1 would gate the "Post summary to PR" step (update-files mode).
+          # The "fail on dead" signal comes from the step summary markdown + the
+          # dead_count GITHUB_OUTPUT, not the exit code.
+          sys.exit(0)
 
           EOF
 
@@ -169,6 +173,14 @@ jobs:
           name: health-report
           path: health-report.json
           retention-days: 30
+
+      - name: Fail build when dead links found
+        if: steps.check.outputs.dead_count > 0 && github.event_name == 'schedule'
+        run: |
+          echo "::error::${DEAD_COUNT:-0} dead links found — see health-summary.md"
+          exit 1
+        env:
+          DEAD_COUNT: ${{ steps.check.outputs.dead_count }}
 
       - name: Post summary to PR / commit
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'update-files'
