@@ -1,6 +1,7 @@
 ---
 title: Anthropic / Claude
 url: https://www.anthropic.com
+health: alive
 category: AI
 tags: [llm, assistant, coding, reasoning]
 featured: true

@@ -1,6 +1,7 @@
 ---
 title: Figma
 url: https://www.figma.com
+health: alive
 category: 設計
 tags: [design, ui, collab, prototyping]
 featured: false

@@ -1,6 +1,7 @@
 ---
 title: Phind
 url: https://www.phind.com
+health: dead
 category: AI
 tags: [search, dev, llm, coding]
 featured: false
