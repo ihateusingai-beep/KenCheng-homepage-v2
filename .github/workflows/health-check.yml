@@ -87,14 +87,21 @@ jobs:
                   status_code = resp.status_code
                   response_time_ms = round(elapsed_ms)
 
-                  if 200 <= status_code < 400:
+                  if 200 <= status_code < 300:
                       new_health = 'alive'
                   elif 300 <= status_code < 400:
                       new_health = 'redirect'
+                  elif status_code == 408 or status_code == 429:
+                      # Request timeout / rate-limited — slow, not dead.
+                      new_health = 'slow'
                   elif status_code >= 500:
                       new_health = 'dead'
                   else:
-                      new_health = 'dead'
+                      # 4xx (except 408/429) — Cloudflare/captcha/bot block.
+                      # Site may be alive; our health checker UA can't pass.
+                      # NOT 'dead'. (Triage 2026-07-16: phind.com 403 is
+                      # cf-mitigated challenge, not unreachable.)
+                      new_health = 'blocked'
               except httpx.TimeoutException:
                   new_health = 'slow'
               except httpx.RequestError:

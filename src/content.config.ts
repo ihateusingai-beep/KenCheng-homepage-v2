@@ -17,7 +17,9 @@ const sites = defineCollection({
     order: z.number().int().min(0).max(1000).default(100),
     date_added: z.string().datetime(),
     // A1 nightly check writes this; default 'unverified' until first run.
-    health: z.enum(['alive', 'redirect', 'dead', 'slow', 'unverified']).default('unverified'),
+    // 'blocked' = 4xx response (Cloudflare/captcha/bot block), site may be alive
+    // but our health checker's User-Agent can't pass. NOT the same as 'dead'.
+    health: z.enum(['alive', 'redirect', 'dead', 'slow', 'unverified', 'blocked']).default('unverified'),
     last_checked: z.string().datetime().optional(),
     notes: z.string().max(500).optional(),
   }),
