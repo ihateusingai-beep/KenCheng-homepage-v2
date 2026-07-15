@@ -17,7 +17,7 @@ interface Props {
   category: string;
   body?: string;
   featured?: boolean;
-  health?: 'alive' | 'redirect' | 'dead' | 'slow' | 'unverified';
+  health?: 'alive' | 'redirect' | 'dead' | 'slow' | 'unverified' | 'blocked';
   /** @deprecated kept for back-compat; use `featured` only. */
   variant?: 'featured' | 'default';
 }
@@ -57,6 +57,7 @@ const HEALTH_META: Record<string, { label: string; cls: string; title: string }>
   dead:       { label: '✕', cls: 'kc-health-dead',       title: '失效' },
   slow:       { label: '◐', cls: 'kc-health-slow',      title: '緩慢' },
   unverified: { label: '?', cls: 'kc-health-unverified',  title: '未驗證' },
+  blocked:    { label: '⊘', cls: 'kc-health-blocked',     title: '被擋（4xx，可能係 bot block）' },
 };
 const healthMeta = HEALTH_META[health] ?? HEALTH_META['unverified'];
 ---

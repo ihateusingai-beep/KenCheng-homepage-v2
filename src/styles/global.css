@@ -612,6 +612,15 @@ body.kc-palette-open .kc-palette-panel {
   border: 1px solid rgba(107, 114, 128, 0.35);
 }
 
+/* blocked = 4xx (bot block / captcha / Cloudflare challenge).
+   Site may be alive; our health checker just can't get past the gate.
+   Visually distinct from dead (red) — use yellow/amber. */
+.kc-health-blocked {
+  background: rgba(245, 158, 11, 0.18);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
 /* Palette result row — tighter spacing when health badge present */
 .kc-result-meta {
   gap: 4px;

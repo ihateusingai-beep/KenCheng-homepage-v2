@@ -1,7 +1,8 @@
 ---
 title: Phind
 url: https://www.phind.com
-health: dead
+health: alive
+notes: "403 was Cloudflare bot block, not dead — re-marked alive after triage 2026-07-16"
 category: AI
 tags: [search, dev, llm, coding]
 featured: false
